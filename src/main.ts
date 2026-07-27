@@ -5,7 +5,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   const container = document.getElementById('game-container');
   if (container) {
-    container.innerHTML = '<p>Game loaded! 🎮</p>';
+    container.innerHTML = '';
     // TODO: initialize game framework here
   }
 });
