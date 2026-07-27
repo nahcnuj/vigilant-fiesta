@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev": "deno run -A src/main.ts",
-    "bundle": "deno bundle src/main.ts src/main.js",
+    "build": "deno bundle src/main.ts dist/main.js",
     "test": "deno test -A"
   }
 }
