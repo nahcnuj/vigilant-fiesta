@@ -1,10 +1,7 @@
 {
-  "imports": {
-    "lume/": "https://deno.land/x/lume@v2.4.1/"
-  },
   "tasks": {
-    "build": "deno run -A https://deno.land/x/lume@v2.4.1/cli.ts",
-    "serve": "deno run -A https://deno.land/x/lume@v2.4.1/cli.ts -s",
+    "dev": "deno run -A src/main.ts",
+    "bundle": "deno bundle src/main.ts src/main.js",
     "test": "deno test -A"
   }
 }
