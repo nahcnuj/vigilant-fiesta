@@ -1,7 +1,7 @@
 {
   "tasks": {
     "dev": "deno run -A src/main.ts",
-    "build": "deno bundle src/main.ts dist/main.js",
+    "build": "mkdir -p dist && cp index.html dist/ && cp src/main.ts dist/main.js"
     "test": "deno test -A"
   }
 }
