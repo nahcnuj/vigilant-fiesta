@@ -23,3 +23,17 @@ jobs:
         with:
           name: coverage
           path: coverage.lcov
+      - name: Post coverage to PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const cov = fs.readFileSync('coverage.lcov', 'utf8');
+            const body = `### 📊 Coverage Report\n\`\`\`lcov\n${cov}\n\`\`\``;
+            await github.rest.issues.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `${context.payload.pull_request.body || ''}\n\n${body}`
+            });
