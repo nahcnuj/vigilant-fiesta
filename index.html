@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Ochimono Puzzle Game</title>
-  <style>
-    body {margin:0;padding:0;background:#121212;color:#fff;font-family:'Inter',sans-serif;display:flex;justify-content:center;align-items:center;min-height:100vh;}
-    #game-container{width:400px;height:500px;background:rgba(255,255,255,0.05);border-radius:16px;box-shadow:0 4px 30px rgba(0,0,0,0.1);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);border:1px solid rgba(255,255,255,0.1);display:flex;justify-content:center;align-items:center;}
-  </style>
+  <link rel="stylesheet" href="src/style.css">
+  <div id="overlay"><span id="score">Score: 0</span><span id="level">Level: 1</span></div>
 </head>
 <body>
   <div id="game-container"></div>
-  <script type="module" src="main.js"></script>
+  <script type="module" src="dist/main.js"></script>
 </body>
 </html>

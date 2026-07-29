@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, impl ]
+  pull_request:
+    branches: [ main, impl ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: "1.x"
+
+      - name: Cache Deno modules
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/deno
+          key: ${{ runner.os }}-deno-${{ hashFiles('**/deno.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-deno-
+
+      - name: Run unit tests
+        run: deno test --allow-read
+
+      - name: Build bundle
+        run: deno task build
+
+      - name: Upload artifact (dist)
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  deploy-pages:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write      # to deploy to GitHub Pages
+      id-token: write   # to verify the deployment
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Deno (for any scripts)
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: "1.x"
+
+      - name: Download built artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Publish GitHub Pages site
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Output deployment URL
+        run: echo "Deployed to ${{ steps.deployment.outputs.page_url }}"
