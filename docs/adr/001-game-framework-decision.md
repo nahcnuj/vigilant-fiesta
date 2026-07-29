@@ -2,7 +2,7 @@
 
 **Creation Date**: 2026-07-27
 
-**Status**: Proposed
+**Status**: Accepted
 <!--
 ADR Status Options:
 - Proposed – under review
@@ -16,7 +16,7 @@ ADR Status Options:
 私たちは、レガシーの *Ochimono Puzzle Game* を Deno + Lume を用いた Web アプリケーションとしてリメイクします。ゲームは `<div id="game-container"></div>` 内に描画されます。主に以下の二つのアプローチを検討しています: Canvas API を用いたゼロからの実装、または軽量ゲームフレームワーク（Kontra.js、PixiJS など）を採用する方法です。制約事項としては Deno 上での実行、リポジトリをできるだけ小さく保つこと、将来的なメンテナンス性の確保があります。
 
 ## 結論
-(未定)
+PixiJS をゲームフレームワークとして採用
 
 ## 選択肢
 
