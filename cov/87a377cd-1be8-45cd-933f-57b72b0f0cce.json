@@ -1,0 +1,44 @@
+{
+  "scriptId": "59",
+  "url": "file:///C:/Users/nahcnuj/ghq/github.com/nahcnuj/vigilant-fiesta/tests/board_test.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 1019,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 174,
+          "endOffset": 553,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 593,
+          "endOffset": 1016,
+          "count": 1
+        },
+        {
+          "startOffset": 973,
+          "endOffset": 1014,
+          "count": 4
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}

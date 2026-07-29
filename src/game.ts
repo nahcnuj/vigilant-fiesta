@@ -53,16 +53,16 @@ export class Game {
     // Try to move down
     const moved = this.tryMove(0, 1);
     if (!moved) {
-      // cannot move down – lock piece
-      this.lockCurrentPiece();
+      // cannot move down – clear lines first, then lock piece
       this.clearCompletedLines();
+      this.lockCurrentPiece();
       this.spawnNextPiece();
     } else {
       // After a successful move, check if piece is now at the bottom or blocked below
       if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y + 1)) {
-        // lock piece immediately
-        this.lockCurrentPiece();
+        // lock piece immediately after move
         this.clearCompletedLines();
+        this.lockCurrentPiece();
         this.spawnNextPiece();
       }
     }

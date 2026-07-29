@@ -1,0 +1,127 @@
+{
+  "scriptId": "95",
+  "url": "file:///C:/Users/nahcnuj/ghq/github.com/nahcnuj/vigilant-fiesta/src/piece.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 7231,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "rotateClockwise",
+      "ranges": [
+        {
+          "startOffset": 1138,
+          "endOffset": 1562,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "rotateCounterClockwise",
+      "ranges": [
+        {
+          "startOffset": 1613,
+          "endOffset": 1807,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 6567,
+          "endOffset": 6599,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "Piece",
+      "ranges": [
+        {
+          "startOffset": 6603,
+          "endOffset": 6720,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "get shape",
+      "ranges": [
+        {
+          "startOffset": 6723,
+          "endOffset": 6862,
+          "count": 13
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 6838,
+          "endOffset": 6856,
+          "count": 19
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "set shape",
+      "ranges": [
+        {
+          "startOffset": 6865,
+          "endOffset": 7023,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 6999,
+          "endOffset": 7017,
+          "count": 4
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "rotateCW",
+      "ranges": [
+        {
+          "startOffset": 7026,
+          "endOffset": 7113,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "rotateCCW",
+      "ranges": [
+        {
+          "startOffset": 7116,
+          "endOffset": 7228,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    }
+  ]
+}

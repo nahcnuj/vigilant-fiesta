@@ -1,0 +1,211 @@
+{
+  "scriptId": "90",
+  "url": "file:///C:/Users/nahcnuj/ghq/github.com/nahcnuj/vigilant-fiesta/src/game.ts",
+  "functions": [
+    {
+      "functionName": "",
+      "ranges": [
+        {
+          "startOffset": 0,
+          "endOffset": 3786,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "randomKey",
+      "ranges": [
+        {
+          "startOffset": 157,
+          "endOffset": 273,
+          "count": 8
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "<instance_members_initializer>",
+      "ranges": [
+        {
+          "startOffset": 296,
+          "endOffset": 408,
+          "count": 3
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "Game",
+      "ranges": [
+        {
+          "startOffset": 412,
+          "endOffset": 1047,
+          "count": 3
+        },
+        {
+          "startOffset": 1007,
+          "endOffset": 1043,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "get isGameOver",
+      "ranges": [
+        {
+          "startOffset": 1092,
+          "endOffset": 1141,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "tick",
+      "ranges": [
+        {
+          "startOffset": 1191,
+          "endOffset": 2012,
+          "count": 3
+        },
+        {
+          "startOffset": 1224,
+          "endOffset": 1231,
+          "count": 0
+        },
+        {
+          "startOffset": 1400,
+          "endOffset": 1450,
+          "count": 1
+        },
+        {
+          "startOffset": 1450,
+          "endOffset": 1529,
+          "count": 2
+        },
+        {
+          "startOffset": 1529,
+          "endOffset": 2008,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "tryMove",
+      "ranges": [
+        {
+          "startOffset": 2079,
+          "endOffset": 2355,
+          "count": 2
+        },
+        {
+          "startOffset": 2241,
+          "endOffset": 2354,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "moveLeft",
+      "ranges": [
+        {
+          "startOffset": 2358,
+          "endOffset": 2399,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "moveRight",
+      "ranges": [
+        {
+          "startOffset": 2402,
+          "endOffset": 2443,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "moveDown",
+      "ranges": [
+        {
+          "startOffset": 2446,
+          "endOffset": 2486,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "rotateCW",
+      "ranges": [
+        {
+          "startOffset": 2489,
+          "endOffset": 2717,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "rotateCCW",
+      "ranges": [
+        {
+          "startOffset": 2720,
+          "endOffset": 2905,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": false
+    },
+    {
+      "functionName": "lockCurrentPiece",
+      "ranges": [
+        {
+          "startOffset": 2953,
+          "endOffset": 3063,
+          "count": 2
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "clearCompletedLines",
+      "ranges": [
+        {
+          "startOffset": 3114,
+          "endOffset": 3402,
+          "count": 2
+        },
+        {
+          "startOffset": 3200,
+          "endOffset": 3398,
+          "count": 1
+        }
+      ],
+      "isBlockCoverage": true
+    },
+    {
+      "functionName": "spawnNextPiece",
+      "ranges": [
+        {
+          "startOffset": 3459,
+          "endOffset": 3783,
+          "count": 2
+        },
+        {
+          "startOffset": 3743,
+          "endOffset": 3779,
+          "count": 0
+        }
+      ],
+      "isBlockCoverage": true
+    }
+  ]
+}
