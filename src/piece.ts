@@ -230,6 +230,10 @@ export class Piece {
     // Return a deep copy to avoid external mutation
     return this.rotations[this.rotationIdx].map(row => row.slice());
   }
+  set shape(matrix: Matrix) {
+    // Directly replace current rotation matrix (used in tests)
+    this.rotations[this.rotationIdx] = matrix.map(row => row.slice());
+  }
   rotateCW(): void {
     this.rotationIdx = (this.rotationIdx + 1) % this.rotations.length;
   }

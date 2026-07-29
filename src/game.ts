@@ -45,11 +45,26 @@ export class Game {
   /** Main tick – move piece down by one cell */
   tick(): void {
     if (this._gameOver) return;
-    if (!this.tryMove(0, 1)) {
+    // If current position is already invalid (e.g., spawn collides), end game
+    if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y)) {
+      this._gameOver = true;
+      return;
+    }
+    // Try to move down
+    const moved = this.tryMove(0, 1);
+    if (!moved) {
       // cannot move down – lock piece
       this.lockCurrentPiece();
       this.clearCompletedLines();
       this.spawnNextPiece();
+    } else {
+      // After a successful move, check if piece is now at the bottom or blocked below
+      if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y + 1)) {
+        // lock piece immediately
+        this.lockCurrentPiece();
+        this.clearCompletedLines();
+        this.spawnNextPiece();
+      }
     }
   }
 
