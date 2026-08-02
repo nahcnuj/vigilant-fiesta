@@ -1,7 +1,6 @@
-import { Game } from "./game.ts";
+import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
-import { dropIntervalMs, gameOptionsFromSearch } from "./play_config.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
@@ -25,6 +24,24 @@ let renderer: Renderer | null = null;
 let detachInput: (() => void) | null = null;
 let tickerFn: (() => void) | null = null;
 let dropAccMs = 0;
+
+/** Deterministic digits-only RNG for E2E (`?e2e=1`). */
+function e2eRng(): number {
+  return 0.5;
+}
+
+function gameOptionsFromUrl(): GameOptions {
+  const params = new URLSearchParams(globalThis.location?.search ?? "");
+  if (params.get("e2e") === "1") {
+    return { rng: e2eRng };
+  }
+  return {};
+}
+
+/** Gravity interval (ms). Faster each level; floor at 120ms. */
+function dropIntervalMs(level: number): number {
+  return Math.max(120, 700 - (level - 1) * 50);
+}
 
 function showScreen(id: ScreenId): void {
   for (const [key, el] of Object.entries(screens)) {
@@ -74,7 +91,7 @@ function startPlay(): void {
   teardownPlay();
   showScreen("playing");
 
-  game = new Game(WIDTH, HEIGHT, gameOptionsFromSearch(globalThis.location?.search ?? ""));
+  game = new Game(WIDTH, HEIGHT, gameOptionsFromUrl());
   renderer = new Renderer(WIDTH, HEIGHT);
   renderer.attachTo("game-container");
   detachInput = setupInput(game);
