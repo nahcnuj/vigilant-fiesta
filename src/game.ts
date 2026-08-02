@@ -1,0 +1,134 @@
+import { Board } from "./board.ts";
+import { FallingPair, randomPair, type Block } from "./piece.ts";
+import { findFormulas, totalFormulaScore } from "./formula.ts";
+
+export interface Position {
+  x: number;
+  y: number;
+}
+
+export interface GameOptions {
+  /** Deterministic current / next pairs (tests). */
+  current?: FallingPair;
+  next?: FallingPair;
+  rng?: () => number;
+}
+
+/** Mutable play session: falling pairs, placement, formulas, score. */
+export class Game {
+  board: Board;
+  current: FallingPair;
+  next: FallingPair;
+  position: Position;
+  score = 0;
+  level = 1;
+  private _gameOver = false;
+  private readonly rng: () => number;
+
+  constructor(
+    public width = 8,
+    public height = 10,
+    options: GameOptions = {},
+  ) {
+    this.rng = options.rng ?? Math.random;
+    this.board = new Board(width, height);
+    this.current = options.current ?? randomPair(this.rng);
+    this.next = options.next ?? randomPair(this.rng);
+    this.position = this.spawnPosition();
+    if (!this.board.canPlaceBlocks(this.current.blocksAt(this.position.x, this.position.y))) {
+      this._gameOver = true;
+    }
+  }
+
+  get isGameOver(): boolean {
+    return this._gameOver;
+  }
+
+  private spawnPosition(): Position {
+    // Pair origin near top center (pivot cell)
+    return { x: Math.floor(this.width / 2), y: 0 };
+  }
+
+  private cellsAt(pos = this.position, pair = this.current) {
+    return pair.blocksAt(pos.x, pos.y);
+  }
+
+  tick(): void {
+    if (this._gameOver) return;
+    if (!this.board.canPlaceBlocks(this.cellsAt())) {
+      this._gameOver = true;
+      return;
+    }
+    if (!this.tryMove(0, 1)) {
+      this.lockAndResolve();
+    }
+  }
+
+  tryMove(dx: number, dy: number): boolean {
+    const nx = this.position.x + dx;
+    const ny = this.position.y + dy;
+    if (this.board.canPlaceBlocks(this.cellsAt({ x: nx, y: ny }))) {
+      this.position = { x: nx, y: ny };
+      return true;
+    }
+    return false;
+  }
+
+  moveLeft(): void {
+    this.tryMove(-1, 0);
+  }
+  moveRight(): void {
+    this.tryMove(1, 0);
+  }
+
+  /** Requirements: ↓ rotates 90° clockwise. */
+  rotateCW(): void {
+    this.current.rotateCW();
+    if (!this.board.canPlaceBlocks(this.cellsAt())) {
+      this.current.rotateCCW();
+    }
+  }
+
+  /** Requirements: ↑ hard drop. */
+  hardDrop(): void {
+    if (this._gameOver) return;
+    while (this.tryMove(0, 1)) {
+      /* drop */
+    }
+    this.lockAndResolve();
+  }
+
+  private lockAndResolve(): void {
+    this.board.placeBlocks(this.cellsAt());
+    this.resolveFormulas();
+    this.spawnNext();
+  }
+
+  /** Clear formulas, apply gravity, repeat until stable; update score/level. */
+  private resolveFormulas(): void {
+    for (let guard = 0; guard < 50; guard++) {
+      const matches = findFormulas(this.board);
+      if (matches.length === 0) break;
+      this.score += totalFormulaScore(matches);
+      // level: +1 per 250 score (requirements 3.5)
+      this.level = Math.floor(this.score / 250) + 1;
+      const cleared = new Map<string, { x: number; y: number }>();
+      for (const m of matches) {
+        for (const c of m.cells) cleared.set(`${c.x},${c.y}`, c);
+      }
+      this.board.clearCells([...cleared.values()]);
+      this.board.applyGravity();
+    }
+  }
+
+  private spawnNext(): void {
+    this.current = this.next;
+    this.next = randomPair(this.rng);
+    this.position = this.spawnPosition();
+    if (!this.board.canPlaceBlocks(this.cellsAt())) {
+      this._gameOver = true;
+    }
+  }
+}
+
+export type { Block };

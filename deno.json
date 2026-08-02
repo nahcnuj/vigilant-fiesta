@@ -1,7 +1,13 @@
 {
+  "imports": {
+    "playwright": "npm:playwright@1.62.1"
+  },
   "tasks": {
-    "dev": "deno run -A src/main.ts",
-    "build": "mkdir -p dist && cp index.html dist/ && cp src/main.ts dist/main.js",
-    "test": "deno test -A"
+    "test": "deno test --allow-read --allow-net src/ tests/integration/",
+    "test:unit": "deno test --allow-read --allow-net src/",
+    "test:integration": "deno test --allow-read --allow-net tests/integration/",
+    "test:e2e": "deno test -A tests/e2e/",
+    "build": "deno bundle --allow-import src/main.ts -o dist/main.js",
+    "dev": "deno task build && npx --yes serve ."
   }
 }

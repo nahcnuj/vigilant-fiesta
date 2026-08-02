@@ -1,0 +1,95 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: #0f1419;
+  color: #fff;
+  font-family: "Inter", system-ui, sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#app {
+  position: relative;
+  width: min(100vw, 28rem);
+  min-height: 24rem;
+}
+
+.screen {
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.screen.hidden,
+.screen[hidden] {
+  display: none;
+}
+
+.blurb {
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 1rem 0 1.5rem;
+}
+
+button {
+  appearance: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font: inherit;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  cursor: pointer;
+  backdrop-filter: blur(12px);
+}
+
+button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#screen-playing {
+  position: relative;
+  padding: 0;
+}
+
+#overlay {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  padding: 0.8rem 1.2rem;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #fff;
+  font-size: 0.9rem;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  z-index: 1;
+  text-align: left;
+}
+
+#overlay span {
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+#overlay span:last-child {
+  margin-bottom: 0;
+}
+
+#game-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+}
+
+#result-score {
+  font-size: 1.25rem;
+  margin: 1rem 0 1.5rem;
+}

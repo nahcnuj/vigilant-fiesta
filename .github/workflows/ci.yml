@@ -1,0 +1,104 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, impl ]
+  pull_request:
+    branches: [ main, impl ]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "2.x"
+      - name: Unit + integration tests with coverage
+        run: deno test --allow-read --allow-net --coverage=cov src/ tests/integration/
+      - name: Generate coverage report
+        env:
+          NO_COLOR: "1"
+        run: |
+          deno coverage cov --lcov > coverage.lcov
+          deno coverage cov > coverage.txt
+          cat coverage.txt
+      - name: Comment coverage to PR
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const summary = fs.readFileSync('coverage.txt', 'utf8')
+              .replace(/\u001b\[[0-9;]*m/g, '')
+              .trim();
+            const body = [
+              '<!-- coverage-report -->',
+              '### Coverage',
+              '',
+              summary,
+              '',
+            ].join('\n');
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner, repo, issue_number,
+            });
+            const existing = comments.find((c) =>
+              c.user?.type === 'Bot' && c.body?.includes('<!-- coverage-report -->')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner, repo, comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner, repo, issue_number, body,
+              });
+            }
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: |
+            coverage.lcov
+            coverage.txt
+
+  playwright-version:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.ver.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: ver
+        run: |
+          VER=$(jq -r '.imports.playwright // empty' deno.json | sed -E 's/^npm:playwright@//')
+          if [ -z "$VER" ]; then
+            echo "playwright version not found in deno.json imports" >&2
+            exit 1
+          fi
+          IMAGE="mcr.microsoft.com/playwright:v${VER}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
+  e2e:
+    needs: playwright-version
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    container:
+      image: ${{ needs.playwright-version.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install unzip
+        run: apt-get update && apt-get install -y unzip
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "2.x"
+      - name: Build bundle
+        run: deno task build
+      - name: E2E tests
+        run: deno task test:e2e
