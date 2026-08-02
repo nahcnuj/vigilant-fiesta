@@ -16,22 +16,22 @@
 
     <section id="screen-playing" class="screen hidden" data-screen="playing" hidden>
       <div id="play-layout">
-        <div id="hud-left">
+        <aside id="hud-left" aria-label="スコア">
           <div id="overlay">
             <span id="score">Score: 0</span>
             <span id="level">Level: 1</span>
           </div>
-        </div>
+        </aside>
         <div id="game-container"></div>
-        <div id="hud-right">
-          <div id="next-panel" aria-label="次のブロック">
+        <aside id="hud-right" aria-label="次のブロック">
+          <div id="next-panel">
             <div class="next-title">Next</div>
             <div id="next-blocks">
               <span id="next-pivot" class="next-cell"></span>
               <span id="next-secondary" class="next-cell"></span>
             </div>
           </div>
-        </div>
+        </aside>
       </div>
     </section>
 
