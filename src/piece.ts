@@ -39,30 +39,7 @@ export const Tetrominos: Record<string, Matrix> = {
   ],
 };
 
-/** Rotates a matrix clockwise.
- *  Works for non‑square matrices as well by treating the matrix as rows.
- */
-export function rotateClockwise(matrix: Matrix): Matrix {
-  const rows = matrix.length;
-  const cols = matrix[0].length;
-  // Resulting matrix has dimensions cols x rows
-  const rotated: Matrix = Array.from({ length: cols }, () => Array<number>(rows).fill(0));
-  for (let i = 0; i < cols; i++) {
-    for (let j = 0; j < rows; j++) {
-      // Map original (rows-1-j, i) to rotated (i, j)
-      rotated[i][j] = matrix[rows - 1 - j][i];
-    }
-  }
-  return rotated;
-}
-
-/** Rotates a matrix counter‑clockwise. */
-export function rotateCounterClockwise(matrix: Matrix): Matrix {
-  // Counter‑clockwise rotation can be achieved by rotating clockwise three times.
-  return rotateClockwise(rotateClockwise(rotateClockwise(matrix)));
-}
-
-/** Simple Piece class holding a shape matrix and providing rotation helpers. */
+/** Rotation state tables for each tetromino type. */
 export const TetrominoRotations: Record<keyof typeof Tetrominos, Matrix[]> = {
   I: [
     [
@@ -229,10 +206,6 @@ export class Piece {
   get shape(): Matrix {
     // Return a deep copy to avoid external mutation
     return this.rotations[this.rotationIdx].map(row => row.slice());
-  }
-  set shape(matrix: Matrix) {
-    // Directly replace current rotation matrix (used in tests)
-    this.rotations[this.rotationIdx] = matrix.map(row => row.slice());
   }
   rotateCW(): void {
     this.rotationIdx = (this.rotationIdx + 1) % this.rotations.length;

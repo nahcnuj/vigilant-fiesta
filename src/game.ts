@@ -1,7 +1,7 @@
-// src/game.ts
-
 import { Board } from "./board.ts";
 import { Piece, Tetrominos } from "./piece.ts";
+
+export type TetrominoType = keyof typeof Tetrominos;
 
 /** Simple utility to pick a random key from an object */
 function randomKey<T>(obj: Record<string, T>): string {
@@ -15,6 +15,13 @@ export interface Position {
   y: number; // row (0‑based, increasing downwards)
 }
 
+/** Initial piece types (deterministic setup for tests or seeded play). */
+export interface GameOptions {
+  currentPiece?: TetrominoType;
+  nextPiece?: TetrominoType;
+}
+
+/** Mutable session: Board + Piece orchestration (tick, input, score, game-over). */
 export class Game {
   board: Board;
   currentPiece: Piece;
@@ -25,10 +32,18 @@ export class Game {
   linesCleared: number = 0;
   private _gameOver: boolean = false;
 
-  constructor(public width: number = 10, public height: number = 20) {
+  constructor(
+    public width: number = 10,
+    public height: number = 20,
+    options: GameOptions = {},
+  ) {
     this.board = new Board(width, height);
-    this.currentPiece = new Piece(randomKey(Tetrominos) as keyof typeof Tetrominos);
-    this.nextPiece = new Piece(randomKey(Tetrominos) as keyof typeof Tetrominos);
+    const currentType = options.currentPiece ??
+      (randomKey(Tetrominos) as TetrominoType);
+    const nextType = options.nextPiece ??
+      (randomKey(Tetrominos) as TetrominoType);
+    this.currentPiece = new Piece(currentType);
+    this.nextPiece = new Piece(nextType);
     // spawn in the middle top
     this.position = { x: Math.floor(width / 2) - 2, y: 0 };
     // if initial placement collides, game over immediately
@@ -100,7 +115,7 @@ export class Game {
 
   /** Place the locked piece onto the board */
   private lockCurrentPiece() {
-    this.board.placePiece(this.currentPiece.shape, this.position.x, this.position.y);
+    this.board.place(this.currentPiece.shape, this.position.x, this.position.y);
   }
 
   /** Remove full lines and update score/level */

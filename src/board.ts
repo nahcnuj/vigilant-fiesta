@@ -33,7 +33,6 @@ export class Board {
   }
 
   /** Places a piece matrix onto the board at the given coordinates. Assumes canPlace was true. */
-  placePiece(matrix: number[][], x: number, y: number): void { this.place(matrix, x, y); }
   place(matrix: number[][], x: number, y: number): void {
     for (let dy = 0; dy < matrix.length; dy++) {
       for (let dx = 0; dx < matrix[dy].length; dx++) {
