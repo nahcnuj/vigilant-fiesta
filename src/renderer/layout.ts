@@ -55,3 +55,14 @@ export function paintList(
   }
   return out;
 }
+
+/** Labels/hues for the Next panel (`game.next` only — not the falling pair). */
+export function nextPreview(pair: { pivot: Block; secondary: Block }): {
+  pivot: { label: string; hue: number };
+  secondary: { label: string; hue: number };
+} {
+  return {
+    pivot: { label: blockLabel(pair.pivot), hue: blockHue(pair.pivot) },
+    secondary: { label: blockLabel(pair.secondary), hue: blockHue(pair.secondary) },
+  };
+}

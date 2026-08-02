@@ -128,4 +128,6 @@ jobs:
         with:
           deno-version: "2.x"
       - name: E2E tests
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
         run: deno task test:e2e
