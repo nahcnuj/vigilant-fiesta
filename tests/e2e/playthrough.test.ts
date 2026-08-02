@@ -3,7 +3,7 @@
  * `?e2e=1` → digits-only pairs (no formula clears).
  */
 import { spawn } from "node:child_process";
-import { chromium, type Page } from "playwright";
+import { chromium } from "playwright";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -21,19 +21,6 @@ async function waitForServer(url: string, attempts = 100): Promise<void> {
     await sleep(200);
   }
   throw new Error(`server not ready: ${url}`);
-}
-
-async function hardDrop(page: Page): Promise<void> {
-  await page.evaluate(() => {
-    window.dispatchEvent(
-      new KeyboardEvent("keydown", {
-        key: "ArrowUp",
-        code: "ArrowUp",
-        bubbles: true,
-        cancelable: true,
-      }),
-    );
-  });
 }
 
 Deno.test({
@@ -69,30 +56,33 @@ Deno.test({
         timeout: 30_000,
       });
 
-      await page.waitForSelector("#btn-start", { timeout: 15_000 });
-      await page.locator("#btn-start").click();
-
+      await page.locator("#btn-start").click({ timeout: 15_000 });
       await page.waitForSelector("#screen-playing:not([hidden])", {
         timeout: 15_000,
       });
       await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
 
+      // Next panel must show labels for upcoming pair
       await page.waitForSelector("#next-panel", { timeout: 5_000 });
-      // Playwright: (fn, arg, options) — options must be 3rd argument
-      await page.waitForFunction(
-        () => {
-          const a = document.getElementById("next-pivot")?.textContent?.trim();
-          const b = document.getElementById("next-secondary")?.textContent?.trim();
-          return !!(a && a.length > 0 && b && b.length > 0);
-        },
-        undefined,
-        { timeout: 10_000 },
-      );
+      const nextPivot = (await page.locator("#next-pivot").innerText()).trim();
+      const nextSec = (await page.locator("#next-secondary").innerText()).trim();
+      if (!nextPivot || !nextSec) {
+        throw new Error(`Next panel empty: pivot="${nextPivot}" secondary="${nextSec}"`);
+      }
 
       const deadline = Date.now() + 60_000;
       while (Date.now() < deadline) {
         if (await page.locator("#screen-result:not([hidden])").count()) break;
-        await hardDrop(page);
+        await page.evaluate(() => {
+          window.dispatchEvent(
+            new KeyboardEvent("keydown", {
+              key: "ArrowUp",
+              code: "ArrowUp",
+              bubbles: true,
+              cancelable: true,
+            }),
+          );
+        });
         await sleep(50);
       }
 
