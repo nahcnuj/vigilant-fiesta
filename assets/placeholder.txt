@@ -1,2 +1,0 @@
-// placeholder for assets directory
-// You can replace these with actual sprite PNGs.
