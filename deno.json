@@ -1,6 +1,7 @@
 {
   "tasks": {
-    "dev": "deno run -A --watch server.ts",
-    "build": "deno bundle --allow-read --allow-net src/main.ts dist/main.js"
+    "test": "deno test --allow-read --allow-net src/",
+    "build": "deno bundle --allow-read --allow-net src/main.ts dist/main.js",
+    "dev": "deno task build && npx --yes serve ."
   }
 }
