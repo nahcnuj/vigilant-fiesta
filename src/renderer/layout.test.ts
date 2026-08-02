@@ -21,7 +21,7 @@ Deno.test("数字は値に応じた色相、演算子は固定色相", () => {
   assertEquals(blockHue(op("*")), 200);
 });
 
-Deno.test("blockLabel は数字と演算子の表示文字", () => {
+Deno.test("blockLabel は数字と全演算子の表示文字", () => {
   assertEquals(blockLabel(num(7)), "7");
   assertEquals(blockLabel(op("+")), "+");
   assertEquals(blockLabel(op("-")), "−");
@@ -34,17 +34,19 @@ Deno.test("paintList は置いてあるセルだけを矩形にする", () => {
     [num(1), null],
     [null, op("*")],
   ];
-  const rects = paintList(grid, 10);
-  assertEquals(rects, [
+  assertEquals(paintList(grid, 10), [
     { x: 0, y: 0, w: 9, h: 9, hue: 36, label: "1" },
     { x: 10, y: 10, w: 9, h: 9, hue: 200, label: "×" },
   ]);
 });
 
-Deno.test("paintList は落下中セルも含める", () => {
+Deno.test("paintList は落下中セルを含め、y<0 は除く", () => {
   const grid = [[null, null]];
-  const rects = paintList(grid, 10, [{ x: 1, y: 0, block: num(3) }]);
-  assertEquals(rects, [
-    { x: 10, y: 0, w: 9, h: 9, hue: 108, label: "3" },
-  ]);
+  assertEquals(
+    paintList(grid, 10, [
+      { x: 1, y: 0, block: num(3) },
+      { x: 0, y: -1, block: op("+") },
+    ]),
+    [{ x: 10, y: 0, w: 9, h: 9, hue: 108, label: "3" }],
+  );
 });
