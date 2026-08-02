@@ -23,8 +23,9 @@ let game: Game | null = null;
 let renderer: Renderer | null = null;
 let detachInput: (() => void) | null = null;
 let tickerFn: (() => void) | null = null;
+let dropAccMs = 0;
 
-/** Deterministic digits-only RNG for reliable E2E fill-to-game-over (`?e2e=1`). */
+/** Deterministic digits-only RNG for E2E (`?e2e=1`). */
 function e2eRng(): number {
   return 0.5;
 }
@@ -35,6 +36,11 @@ function gameOptionsFromUrl(): GameOptions {
     return { rng: e2eRng };
   }
   return {};
+}
+
+/** Gravity interval (ms). Faster each level; floor at 120ms. */
+function dropIntervalMs(level: number): number {
+  return Math.max(120, 700 - (level - 1) * 50);
 }
 
 function showScreen(id: ScreenId): void {
@@ -49,6 +55,17 @@ function updateHud(): void {
   if (!game) return;
   scoreEl.textContent = `Score: ${game.score}`;
   levelEl.textContent = `Level: ${game.level}`;
+}
+
+function activeCells() {
+  if (!game || game.isGameOver) return [];
+  return game.current.blocksAt(game.position.x, game.position.y);
+}
+
+function paint(): void {
+  if (!game || !renderer) return;
+  renderer.render(game.board.getGrid(), activeCells());
+  updateHud();
 }
 
 function teardownPlay(): void {
@@ -67,6 +84,7 @@ function teardownPlay(): void {
     renderer = null;
   }
   game = null;
+  dropAccMs = 0;
 }
 
 function startPlay(): void {
@@ -77,9 +95,9 @@ function startPlay(): void {
   renderer = new Renderer(WIDTH, HEIGHT);
   renderer.attachTo("game-container");
   detachInput = setupInput(game);
-  updateHud();
+  dropAccMs = 0;
+  paint();
 
-  // Already over (e.g. tiny board) → result immediately
   if (game.isGameOver) {
     endPlay();
     return;
@@ -91,15 +109,21 @@ function startPlay(): void {
       endPlay();
       return;
     }
-    game.tick();
-    renderer.render(game.board.getGrid());
-    updateHud();
+
+    dropAccMs += renderer.app.ticker.deltaMS;
+    const interval = dropIntervalMs(game.level);
+    while (dropAccMs >= interval) {
+      dropAccMs -= interval;
+      game.tick();
+      if (game.isGameOver) break;
+    }
+
+    paint();
     if (game.isGameOver) {
       endPlay();
     }
   };
   renderer.app.ticker.add(tickerFn);
-  renderer.render(game.board.getGrid());
 }
 
 function endPlay(): void {
@@ -112,7 +136,6 @@ function endPlay(): void {
     renderer.app.ticker.remove(tickerFn);
     tickerFn = null;
   }
-  // Keep last frame visible under result? Prefer dedicated result screen.
   if (renderer) {
     const view = renderer.app.view as HTMLElement | null;
     view?.parentElement?.removeChild(view);
@@ -120,6 +143,7 @@ function endPlay(): void {
     renderer = null;
   }
   game = null;
+  dropAccMs = 0;
   resultScoreEl.textContent = `Score: ${finalScore}`;
   showScreen("result");
 }

@@ -16,17 +16,37 @@ export function blockHue(block: Block): number {
   return block.kind === "num" ? (block.value * 36) % 360 : 200;
 }
 
-export type PaintRect = {
+/** Visible label on a cell. */
+export function blockLabel(block: Block): string {
+  if (block.kind === "num") return String(block.value);
+  switch (block.value) {
+    case "+":
+      return "+";
+    case "-":
+      return "−";
+    case "*":
+      return "×";
+    case "/":
+      return "÷";
+  }
+}
+
+export type PaintCell = {
   x: number;
   y: number;
   w: number;
   h: number;
   hue: number;
+  label: string;
 };
 
-/** Non-null cells as axis-aligned rects for the renderer. */
-export function paintList(grid: Cell[][], cellSize: number): PaintRect[] {
-  const out: PaintRect[] = [];
+/** Board cells + optional active (falling) cells as paint list. */
+export function paintList(
+  grid: Cell[][],
+  cellSize: number,
+  active: { x: number; y: number; block: Block }[] = [],
+): PaintCell[] {
+  const out: PaintCell[] = [];
   for (let y = 0; y < grid.length; y++) {
     for (let x = 0; x < grid[y].length; x++) {
       const cell = grid[y][x];
@@ -37,8 +57,20 @@ export function paintList(grid: Cell[][], cellSize: number): PaintRect[] {
         w: cellSize - 1,
         h: cellSize - 1,
         hue: blockHue(cell),
+        label: blockLabel(cell),
       });
     }
+  }
+  for (const a of active) {
+    if (a.y < 0) continue;
+    out.push({
+      x: a.x * cellSize,
+      y: a.y * cellSize,
+      w: cellSize - 1,
+      h: cellSize - 1,
+      hue: blockHue(a.block),
+      label: blockLabel(a.block),
+    });
   }
   return out;
 }
