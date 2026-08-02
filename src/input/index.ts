@@ -3,10 +3,9 @@
  *
  * ```
  * createKeyboardSource  ─┐
- * createButtonSource*   ─┼→ ActionHandler (createGameController)
- * (other InputSources)  ─┘
+ * (other InputSources)  ─┼→ ActionHandler (createGameController)
+ *                       ─┘
  * ```
- * * planned: on-screen buttons for smartphone.
  */
 export type { GameAction } from "./action.ts";
 export { ALL_GAME_ACTIONS, GAME_ACTION_LABELS } from "./action.ts";

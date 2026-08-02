@@ -8,8 +8,8 @@
 
 | 層 | 役割 |
 |----|------|
-| `index.html` + `style.css` | シェルとオーバーレイ（リポジトリ直下） |
-| `src/main.ts` | エントリ。Game + Renderer + Input を接続 |
+| `index.html` + `style.css` | シェル（タイトル / プレイ / 結果） |
+| `src/main.ts` | 画面遷移と Game + Renderer + Input の配線 |
 | `src/game.ts` | ミュータブルなセッション（落下・操作・スコア） |
 | `src/board.ts` / `piece.ts` / `formula.ts` | 盤・2 ブロックペア・数式検出 |
 | `src/renderer/` | 描画パッケージ（公開 API は `index.ts`） |
@@ -24,21 +24,28 @@ src/renderer/
 
 src/input/
   index.ts         # 公開 API + setupInput（現状はキーボード）
-  action.ts        # GameAction（操作意図）と表示用ラベル
+  action.ts        # GameAction と表示用ラベル
   controller.ts    # GameAction → Game メソッド
   source.ts        # InputSource（attach / detach）
-  keyboard.ts      # キーボード実装（現行）
-  # 予定: 画面上ボタン用 InputSource（ジェスチャは別途検討）
+  keyboard.ts      # キーボード実装
 ```
 
 ビルド: `deno task build` → `dist/main.js`。
 
-## 入力アーキテクチャ（スマホ対応の布石）
+## 画面フロー
 
-操作はすべて **`GameAction`** に正規化する。Game は具体的な入力デバイスを知らない。
+1. **title** (`#screen-title`) — スタート
+2. **playing** (`#screen-playing`) — フィールド・スコア、入力有効
+3. **result** (`#screen-result`) — 最終スコア、もう一度
 
-| GameAction | 現行キーボード | 想定 UI（画面上ボタン） |
-|------------|----------------|-------------------------|
+DOM の `data-screen` / `hidden` で E2E から観測する。
+
+## 入力アーキテクチャ
+
+操作はすべて **`GameAction`** に正規化する。
+
+| GameAction | 現行キーボード | 画面上ボタン（想定） |
+|------------|----------------|----------------------|
 | `moveLeft` | ← | 「左へ」 |
 | `moveRight` | → | 「右へ」 |
 | `rotateCW` | ↓ | 「回転」 |
@@ -51,32 +58,28 @@ InputSource (keyboard / on-screen buttons / …)
 ActionHandler = createGameController(game)
         │
         ▼
-    Game.moveLeft | moveRight | rotateCW | hardDrop
+    Game の public API
 ```
 
-- **画面上ボタン**: 各 `GameAction` に 1 コントロール。ラベルは `GAME_ACTION_LABELS` を再利用（操作説明にも使える）。
-- **操作説明**: 「キー ↔ ラベル」または「ボタン ↔ ラベル」を出せばよい（文言の単一ソースは `GAME_ACTION_LABELS` + キーマップ表）。
-- **ジェスチャ**: 未定。必要になったら同じ `InputSource` 契約で検討する。
-
-現状の配線: `setupInput(game)` はキーボード source のみ attach。
+現状: `setupInput(game)` はキーボードのみ。
 
 ## テスト配置
 
 | 種類 | 置き場 | 対象 |
 |------|--------|------|
-| **Unit** | `src/**/*.test.ts`（実装隣） | ドメイン仕様（Board / Pair / formula / Game） |
-| **Integration** | `tests/integration/` | 複数モジュールを公開 API でつなぐ |
-| **E2E** | `tests/e2e/` | 現状は起動スモーク（ページ＋ canvas）。開始〜終了の一連プレイは未カバー |
+| **Unit** | `src/**/*.test.ts` | ドメイン仕様 |
+| **Integration** | `tests/integration/` | 複数モジュール |
+| **E2E** | `tests/e2e/playthrough.mjs` | 開始 → ハードドロップのみ → 結果表示 |
 
-`layout.ts` は renderer パッケージ内のヘルパ（Unit: `layout.test.ts`）。ドメインは Unit / Integration、画面接続は E2E。
+E2E は `?e2e=1` で数字のみのペアを使い、数式消去なしで盤面が埋まりゲームオーバーまで到達できるようにする。
 
 ```bash
 deno task test           # unit + integration
-deno task test:e2e       # browser smoke (Playwright)
+deno task test:e2e       # playthrough
 ```
 
 ## UI
 
 - フィールド 8×10
-- オーバーレイ: スコア・レベル（glassmorphism）
+- オーバーレイ: スコア・レベル
 - アセット: 実スプライトが必要になった時点で `assets/` を追加

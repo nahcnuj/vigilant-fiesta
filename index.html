@@ -7,11 +7,27 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="overlay">
-    <span id="score">Score: 0</span>
-    <span id="level">Level: 1</span>
+  <div id="app">
+    <section id="screen-title" class="screen" data-screen="title">
+      <h1>落ち物パズルゲーム・蘇</h1>
+      <p class="blurb">数字と記号を並べて数式をつくり、スコアを稼ごう。</p>
+      <button type="button" id="btn-start">スタート</button>
+    </section>
+
+    <section id="screen-playing" class="screen hidden" data-screen="playing" hidden>
+      <div id="overlay">
+        <span id="score">Score: 0</span>
+        <span id="level">Level: 1</span>
+      </div>
+      <div id="game-container"></div>
+    </section>
+
+    <section id="screen-result" class="screen hidden" data-screen="result" hidden>
+      <h2>ゲームオーバー</h2>
+      <p id="result-score">Score: 0</p>
+      <button type="button" id="btn-retry">もう一度</button>
+    </section>
   </div>
-  <div id="game-container"></div>
   <script type="module" src="dist/main.js"></script>
 </body>
 </html>
