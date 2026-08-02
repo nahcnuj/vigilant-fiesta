@@ -87,5 +87,6 @@ jobs:
           npx playwright install chromium --with-deps
       - name: Build bundle
         run: deno task build
-      - name: E2E playthrough (start → hard drop → result)
-        run: node tests/e2e/playthrough.mjs
+      - name: E2E tests
+        run: deno task test:e2e
+
