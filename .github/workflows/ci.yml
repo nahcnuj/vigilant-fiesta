@@ -19,14 +19,14 @@ jobs:
         with:
           deno-version: "2.x"
       - name: Run unit tests with coverage
-        run: deno test --allow-read --allow-write --allow-run --allow-net --coverage=cov
-      - name: Generate coverage report and enforce ≥90%
+        run: deno test --allow-read --allow-net --coverage=cov
+      - name: Generate coverage report
         env:
           NO_COLOR: "1"
         run: |
           deno coverage cov --lcov > coverage.lcov
           deno coverage cov > coverage.txt
-          deno run --allow-read --allow-write scripts/coverage_report.ts coverage.txt coverage.md
+          cat coverage.txt
       - name: Comment coverage to PR
         if: github.event_name == 'pull_request'
         continue-on-error: true
@@ -34,8 +34,17 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const body = '<!-- coverage-report -->\n' +
-              fs.readFileSync('coverage.md', 'utf8').trim() + '\n';
+            // Strip any residual ANSI; post as Markdown (deno table renders as a table)
+            const summary = fs.readFileSync('coverage.txt', 'utf8')
+              .replace(/\u001b\[[0-9;]*m/g, '')
+              .trim();
+            const body = [
+              '<!-- coverage-report -->',
+              '### Coverage',
+              '',
+              summary,
+              '',
+            ].join('\n');
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
             const { data: comments } = await github.rest.issues.listComments({
@@ -60,4 +69,3 @@ jobs:
           path: |
             coverage.lcov
             coverage.txt
-            coverage.md

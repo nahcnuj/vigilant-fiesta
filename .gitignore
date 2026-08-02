@@ -8,7 +8,10 @@
 # Coverage reports
 # https://docs.deno.com/runtime/reference/cli/coverage/
 coverage/
+cov/
+
 *.lcov
 
 .gemini/plans/
 dist/
+
