@@ -1,6 +1,6 @@
 import { Game } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
-import { setupInput } from "./input.ts";
+import { setupInput } from "./input/index.ts";
 
 // requirements: 8 columns × 10 rows
 const WIDTH = 8;
