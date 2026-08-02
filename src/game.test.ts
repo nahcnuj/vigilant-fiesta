@@ -52,12 +52,11 @@ Deno.test("出現位置に置けないとゲームオーバー", () => {
     current: pair(num(1), num(2)),
     next: pair(num(3), num(4)),
   });
-  // 出現帯を埋める
-  for (let x = 0; x < 8; x++) {
-    game.board.placeBlocks([
-      { x, y: 0, block: num(1) },
-      { x, y: 1, block: num(2) },
-    ]);
+  // 盤を埋める（lock 後の重力で上方が空かないようにする）
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 8; x++) {
+      game.board.placeBlocks([{ x, y, block: num(1) }]);
+    }
   }
   game.hardDrop();
   assert(game.isGameOver);
@@ -148,4 +147,27 @@ Deno.test("コンストラクタで rng を渡せる", () => {
   assertEquals(game.current.pivot, num(5));
   assertEquals(game.next.pivot, num(5));
   assert(!game.isGameOver);
+});
+
+Deno.test("水平向きのハードドロップ後、片方は下まで落ちる", () => {
+  // 左列だけ床があり、右列は空 → 横向きで着地すると右が浮くので重力で落とす
+  const game = new Game(4, 4, {
+    current: new FallingPair(num(1), num(2)),
+    next: new FallingPair(num(3), num(4)),
+  });
+  // orientation 3: secondary が pivot の右
+  game.current.rotateCW();
+  game.current.rotateCW();
+  game.current.rotateCW();
+  assertEquals(game.current.orientation, 3);
+  game.position = { x: 1, y: 0 };
+  // 左下に障害（pivot側の列を埋める）
+  game.board.placeBlocks([{ x: 1, y: 3, block: num(9) }]);
+  game.hardDrop();
+  // pivot(1) は y=2 に載り、secondary(2) は空列なので y=3 まで落ちる
+  assertEquals(game.board.get(1, 2)?.kind, "num");
+  assertEquals(game.board.get(1, 2)?.value, 1);
+  assertEquals(game.board.get(2, 3)?.kind, "num");
+  assertEquals(game.board.get(2, 3)?.value, 2);
+  assertEquals(game.board.get(2, 2), null);
 });
