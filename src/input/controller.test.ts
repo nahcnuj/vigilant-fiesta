@@ -18,6 +18,8 @@ Deno.test("createGameController は各 GameAction を Game に渡す", () => {
   assertEquals(game.position.x, x0);
   handle("rotateCW");
   assertEquals(game.current.orientation, 1);
+  handle("hardDrop");
+  assertEquals(game.current.pivot, num(3)); // next became current after lock
 });
 
 Deno.test("ゲームオーバー中は Action を無視する", () => {

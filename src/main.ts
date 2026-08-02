@@ -1,6 +1,7 @@
-import { Game, type GameOptions } from "./game.ts";
+import { Game } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
+import { dropIntervalMs, gameOptionsFromSearch } from "./play_config.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
@@ -22,26 +23,8 @@ const btnRetry = document.getElementById("btn-retry")!;
 let game: Game | null = null;
 let renderer: Renderer | null = null;
 let detachInput: (() => void) | null = null;
-let tickerFn: ((deltaMS: number) => void) | null = null;
+let tickerFn: (() => void) | null = null;
 let dropAccMs = 0;
-
-/** Deterministic digits-only RNG for reliable E2E fill-to-game-over (`?e2e=1`). */
-function e2eRng(): number {
-  return 0.5;
-}
-
-function gameOptionsFromUrl(): GameOptions {
-  const params = new URLSearchParams(globalThis.location?.search ?? "");
-  if (params.get("e2e") === "1") {
-    return { rng: e2eRng };
-  }
-  return {};
-}
-
-/** Gravity interval (ms). Faster each level; floor at 120ms. */
-function dropIntervalMs(level: number): number {
-  return Math.max(120, 700 - (level - 1) * 50);
-}
 
 function showScreen(id: ScreenId): void {
   for (const [key, el] of Object.entries(screens)) {
@@ -91,7 +74,7 @@ function startPlay(): void {
   teardownPlay();
   showScreen("playing");
 
-  game = new Game(WIDTH, HEIGHT, gameOptionsFromUrl());
+  game = new Game(WIDTH, HEIGHT, gameOptionsFromSearch(globalThis.location?.search ?? ""));
   renderer = new Renderer(WIDTH, HEIGHT);
   renderer.attachTo("game-container");
   detachInput = setupInput(game);
@@ -110,8 +93,7 @@ function startPlay(): void {
       return;
     }
 
-    const delta = renderer.app.ticker.deltaMS;
-    dropAccMs += delta;
+    dropAccMs += renderer.app.ticker.deltaMS;
     const interval = dropIntervalMs(game.level);
     while (dropAccMs >= interval) {
       dropAccMs -= interval;
