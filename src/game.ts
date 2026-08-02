@@ -100,6 +100,7 @@ export class Game {
 
   private lockAndResolve(): void {
     this.board.placeBlocks(this.cellsAt());
+    this.board.applyGravity();
     this.resolveFormulas();
     this.spawnNext();
   }
