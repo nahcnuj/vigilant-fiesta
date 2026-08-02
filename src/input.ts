@@ -1,7 +1,10 @@
-// src/input.ts
+import type { Game } from "./game.ts";
 
-/** Simple keyboard input handler that forwards key events to the Game instance. */
-export function setupInput(game: any) {
+/**
+ * Keyboard map from requirements 3.3:
+ * ← → move, ↓ rotate CW, ↑ hard drop
+ */
+export function setupInput(game: Game): void {
   document.addEventListener("keydown", (e) => {
     switch (e.key) {
       case "ArrowLeft":
@@ -11,14 +14,10 @@ export function setupInput(game: any) {
         game.moveRight();
         break;
       case "ArrowDown":
-        game.moveDown();
-        break;
-      case "ArrowUp":
         game.rotateCW();
         break;
-      case " " /* space */:
-        // hard drop – move piece down until it collides
-        while (game.tryMove(0, 1)) {}
+      case "ArrowUp":
+        game.hardDrop();
         break;
     }
   });

@@ -1,25 +1,27 @@
 import { assertEquals, assert } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { Board } from "./board.ts";
+import { num, op } from "./piece.ts";
 
-Deno.test("空きマスには置けるが、重なりと場外には置けない", () => {
-  const board = new Board(4, 4);
-  const o = [
-    [1, 1],
-    [1, 1],
+Deno.test("空きには置けるが、重なりと場外には置けない", () => {
+  const board = new Board(8, 10);
+  const cells = [
+    { x: 3, y: 0, block: num(1) },
+    { x: 3, y: 1, block: op("+") },
   ];
-
-  assert(board.canPlace(o, 0, 0));
-  board.place(o, 0, 0);
-  assert(!board.canPlace(o, 0, 0));
-  assert(board.canPlace(o, 2, 0));
-  assert(!board.canPlace([[1]], -1, 0));
-  assert(!board.canPlace([[1]], 0, 4));
+  assert(board.canPlaceBlocks(cells));
+  board.placeBlocks(cells);
+  assert(!board.canPlaceBlocks(cells));
+  assert(!board.canPlaceBlocks([{ x: -1, y: 0, block: num(2) }]));
 });
 
-Deno.test("揃った行を消し、上に詰める", () => {
-  const board = new Board(4, 4);
-  board.place([[1, 1, 1, 1]], 0, 3);
-
-  assertEquals(board.clearLines(), 1);
-  assert(board.getGrid()[3].every((c) => c === null));
+Deno.test("セル消去後、列ごとに下へ詰める", () => {
+  const board = new Board(3, 3);
+  board.placeBlocks([
+    { x: 0, y: 0, block: num(1) },
+    { x: 0, y: 2, block: num(9) },
+  ]);
+  board.clearCells([{ x: 0, y: 2 }]);
+  board.applyGravity();
+  assertEquals(board.get(0, 2), num(1));
+  assertEquals(board.get(0, 0), null);
 });

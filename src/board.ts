@@ -1,67 +1,65 @@
-export type Cell = number | null;
+import type { Block } from "./piece.ts";
+
+export type Cell = Block | null;
 
 export class Board {
   readonly width: number;
   readonly height: number;
   private grid: Cell[][];
 
-  constructor(width = 10, height = 20) {
+  constructor(width = 8, height = 10) {
     this.width = width;
     this.height = height;
-    this.grid = Array.from({ length: height }, () => Array<Cell>(width).fill(null));
+    this.grid = Array.from({ length: height }, () =>
+      Array<Cell>(width).fill(null)
+    );
   }
 
-  /** Returns a copy of the grid (read‑only). */
   getGrid(): Cell[][] {
-    // deep copy to avoid external mutation
-    return this.grid.map(row => row.slice());
+    return this.grid.map((row) => row.slice());
   }
 
-  /** Checks if a piece matrix can be placed at the given coordinates without collision. */
-  canPlace(matrix: number[][], x: number, y: number): boolean {
-    for (let dy = 0; dy < matrix.length; dy++) {
-      for (let dx = 0; dx < matrix[dy].length; dx++) {
-        const value = matrix[dy][dx];
-        if (value === 0) continue; // empty cell in piece
-        const gx = x + dx;
-        const gy = y + dy;
-        if (gx < 0 || gx >= this.width || gy < 0 || gy >= this.height) return false;
-        if (this.grid[gy][gx] !== null) return false;
-      }
+  get(x: number, y: number): Cell {
+    if (x < 0 || x >= this.width || y < 0 || y >= this.height) return null;
+    return this.grid[y][x];
+  }
+
+  /** True if every occupied cell of the pair fits and is empty. */
+  canPlaceBlocks(
+    cells: { x: number; y: number; block: Block }[],
+  ): boolean {
+    for (const { x, y } of cells) {
+      if (x < 0 || x >= this.width || y < 0 || y >= this.height) return false;
+      if (this.grid[y][x] !== null) return false;
     }
     return true;
   }
 
-  /** Places a piece matrix onto the board at the given coordinates. Assumes canPlace was true. */
-  place(matrix: number[][], x: number, y: number): void {
-    for (let dy = 0; dy < matrix.length; dy++) {
-      for (let dx = 0; dx < matrix[dy].length; dx++) {
-        const value = matrix[dy][dx];
-        if (value === 0) continue;
-        const gx = x + dx;
-        const gy = y + dy;
-        this.grid[gy][gx] = value;
+  placeBlocks(cells: { x: number; y: number; block: Block }[]): void {
+    for (const { x, y, block } of cells) {
+      this.grid[y][x] = block;
+    }
+  }
+
+  clearCells(coords: { x: number; y: number }[]): void {
+    for (const { x, y } of coords) {
+      if (x >= 0 && x < this.width && y >= 0 && y < this.height) {
+        this.grid[y][x] = null;
       }
     }
   }
 
-  /** Clears all full rows and returns the number of cleared lines. */
-  clearLines(): number {
-    let cleared = 0;
-    const newGrid: Cell[][] = [];
-    for (let y = 0; y < this.height; y++) {
-      const rowFull = this.grid[y].every(cell => cell !== null);
-      if (rowFull) {
-        cleared++;
-      } else {
-        newGrid.push(this.grid[y]);
+  /** After clears, gravity: each column packs blocks downward. */
+  applyGravity(): void {
+    for (let x = 0; x < this.width; x++) {
+      const stack: Block[] = [];
+      for (let y = this.height - 1; y >= 0; y--) {
+        const c = this.grid[y][x];
+        if (c !== null) stack.push(c);
+      }
+      for (let y = this.height - 1; y >= 0; y--) {
+        this.grid[y][x] = stack[this.height - 1 - y] ?? null;
       }
     }
-    // prepend empty rows at the top for each cleared line
-    while (newGrid.length < this.height) {
-      newGrid.unshift(Array<Cell>(this.width).fill(null));
-    }
-    this.grid = newGrid;
-    return cleared;
   }
 }

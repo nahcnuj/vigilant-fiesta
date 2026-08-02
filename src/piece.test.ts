@@ -1,32 +1,15 @@
 import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
-import { Piece } from "./piece.ts";
+import { FallingPair, num, op } from "./piece.ts";
 
-Deno.test("時計回りに4回回すと元の形に戻る", () => {
-  const piece = new Piece("L");
-  const original = piece.shape;
-  piece.rotateCW();
-  assertEquals(piece.shape, [
-    [1, 1, 1],
-    [1, 0, 0],
-    [0, 0, 0],
-  ]);
-  piece.rotateCW();
-  piece.rotateCW();
-  piece.rotateCW();
-  assertEquals(piece.shape, original);
-});
-
-Deno.test("反時計回りに4回回すと元の形に戻る", () => {
-  const piece = new Piece("J");
-  const original = piece.shape;
-  piece.rotateCCW();
-  assertEquals(piece.shape, [
-    [0, 0, 1],
-    [1, 1, 1],
-    [0, 0, 0],
-  ]);
-  piece.rotateCCW();
-  piece.rotateCCW();
-  piece.rotateCCW();
-  assertEquals(piece.shape, original);
+Deno.test("2ブロックのペアは時計回りに回転し、4回で向きが戻る", () => {
+  const pair = new FallingPair(num(1), op("+"));
+  assertEquals(pair.offsets()[1], { dx: 0, dy: 1 });
+  pair.rotateCW();
+  assertEquals(pair.offsets()[1], { dx: -1, dy: 0 });
+  pair.rotateCW();
+  assertEquals(pair.offsets()[1], { dx: 0, dy: -1 });
+  pair.rotateCW();
+  assertEquals(pair.offsets()[1], { dx: 1, dy: 0 });
+  pair.rotateCW();
+  assertEquals(pair.offsets()[1], { dx: 0, dy: 1 });
 });

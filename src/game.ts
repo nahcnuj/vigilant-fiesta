@@ -1,141 +1,136 @@
 import { Board } from "./board.ts";
-import { Piece, Tetrominos } from "./piece.ts";
+import { FallingPair, randomPair, type Block } from "./piece.ts";
+import { findFormulas, totalFormulaScore } from "./formula.ts";
 
-export type TetrominoType = keyof typeof Tetrominos;
-
-/** Simple utility to pick a random key from an object */
-function randomKey<T>(obj: Record<string, T>): string {
-  const keys = Object.keys(obj);
-  return keys[Math.floor(Math.random() * keys.length)];
-}
-
-/** Position of a piece on the board */
 export interface Position {
-  x: number; // column (0‑based)
-  y: number; // row (0‑based, increasing downwards)
+  x: number;
+  y: number;
 }
 
-/** Initial piece types (deterministic setup for tests or seeded play). */
 export interface GameOptions {
-  currentPiece?: TetrominoType;
-  nextPiece?: TetrominoType;
+  /** Deterministic current / next pairs (tests). */
+  current?: FallingPair;
+  next?: FallingPair;
+  rng?: () => number;
 }
 
-/** Mutable session: Board + Piece orchestration (tick, input, score, game-over). */
+/**
+ * Mutable session for the number/operator falling puzzle (not Tetris).
+ */
 export class Game {
   board: Board;
-  currentPiece: Piece;
-  nextPiece: Piece;
-  position: Position; // top‑left corner of current piece on the board
-  score: number = 0;
-  level: number = 1;
-  linesCleared: number = 0;
-  private _gameOver: boolean = false;
+  current: FallingPair;
+  next: FallingPair;
+  position: Position;
+  score = 0;
+  level = 1;
+  private _gameOver = false;
+  private readonly rng: () => number;
 
   constructor(
-    public width: number = 10,
-    public height: number = 20,
+    public width = 8,
+    public height = 10,
     options: GameOptions = {},
   ) {
+    this.rng = options.rng ?? Math.random;
     this.board = new Board(width, height);
-    const currentType = options.currentPiece ??
-      (randomKey(Tetrominos) as TetrominoType);
-    const nextType = options.nextPiece ??
-      (randomKey(Tetrominos) as TetrominoType);
-    this.currentPiece = new Piece(currentType);
-    this.nextPiece = new Piece(nextType);
-    // spawn in the middle top
-    this.position = { x: Math.floor(width / 2) - 2, y: 0 };
-    // if initial placement collides, game over immediately
-    if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y)) {
+    this.current = options.current ?? randomPair(this.rng);
+    this.next = options.next ?? randomPair(this.rng);
+    this.position = this.spawnPosition();
+    if (!this.board.canPlaceBlocks(this.current.blocksAt(this.position.x, this.position.y))) {
       this._gameOver = true;
     }
   }
 
-  /** Returns true if the game has ended */
   get isGameOver(): boolean {
     return this._gameOver;
   }
 
-  /** Main tick – move piece down by one cell */
+  private spawnPosition(): Position {
+    // Pair origin near top center (pivot cell)
+    return { x: Math.floor(this.width / 2), y: 0 };
+  }
+
+  private cellsAt(pos = this.position, pair = this.current) {
+    return pair.blocksAt(pos.x, pos.y);
+  }
+
   tick(): void {
     if (this._gameOver) return;
-    // If current position is already invalid (e.g., spawn collides), end game
-    if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y)) {
+    if (!this.board.canPlaceBlocks(this.cellsAt())) {
       this._gameOver = true;
       return;
     }
-    // Try to move down
-    const moved = this.tryMove(0, 1);
-    if (!moved) {
-      // cannot move down – clear lines first, then lock piece
-      this.clearCompletedLines();
-      this.lockCurrentPiece();
-      this.spawnNextPiece();
-    } else {
-      // After a successful move, check if piece is now at the bottom or blocked below
-      if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y + 1)) {
-        // lock piece immediately after move
-        this.clearCompletedLines();
-        this.lockCurrentPiece();
-        this.spawnNextPiece();
-      }
+    if (!this.tryMove(0, 1)) {
+      this.lockAndResolve();
     }
   }
 
-  /** Attempt to move piece by (dx, dy). Returns true if moved */
   tryMove(dx: number, dy: number): boolean {
-    const newX = this.position.x + dx;
-    const newY = this.position.y + dy;
-    if (this.board.canPlace(this.currentPiece.shape, newX, newY)) {
-      this.position = { x: newX, y: newY };
+    const nx = this.position.x + dx;
+    const ny = this.position.y + dy;
+    if (this.board.canPlaceBlocks(this.cellsAt({ x: nx, y: ny }))) {
+      this.position = { x: nx, y: ny };
       return true;
     }
     return false;
   }
 
-  moveLeft() { this.tryMove(-1, 0); }
-  moveRight() { this.tryMove(1, 0); }
-  moveDown() { this.tryMove(0, 1); }
+  moveLeft(): void {
+    this.tryMove(-1, 0);
+  }
+  moveRight(): void {
+    this.tryMove(1, 0);
+  }
 
-  rotateCW() {
-    this.currentPiece.rotateCW();
-    // if rotation causes collision, revert
-    if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y)) {
-      this.currentPiece.rotateCCW();
+  /** Requirements: ↓ rotates 90° clockwise. */
+  rotateCW(): void {
+    this.current.rotateCW();
+    if (!this.board.canPlaceBlocks(this.cellsAt())) {
+      this.current.rotateCCW();
     }
   }
 
-  rotateCCW() {
-    this.currentPiece.rotateCCW();
-    if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y)) {
-      this.currentPiece.rotateCW();
+  /** Requirements: ↑ hard drop. */
+  hardDrop(): void {
+    if (this._gameOver) return;
+    while (this.tryMove(0, 1)) {
+      /* drop */
+    }
+    this.lockAndResolve();
+  }
+
+  private lockAndResolve(): void {
+    this.board.placeBlocks(this.cellsAt());
+    this.resolveFormulas();
+    this.spawnNext();
+  }
+
+  /** Clear formulas, apply gravity, repeat until stable; update score/level. */
+  private resolveFormulas(): void {
+    for (let guard = 0; guard < 50; guard++) {
+      const matches = findFormulas(this.board);
+      if (matches.length === 0) break;
+      this.score += totalFormulaScore(matches);
+      // level: +1 per 250 score (requirements 3.5)
+      this.level = Math.floor(this.score / 250) + 1;
+      const cleared = new Map<string, { x: number; y: number }>();
+      for (const m of matches) {
+        for (const c of m.cells) cleared.set(`${c.x},${c.y}`, c);
+      }
+      this.board.clearCells([...cleared.values()]);
+      this.board.applyGravity();
     }
   }
 
-  /** Place the locked piece onto the board */
-  private lockCurrentPiece() {
-    this.board.place(this.currentPiece.shape, this.position.x, this.position.y);
-  }
-
-  /** Remove full lines and update score/level */
-  private clearCompletedLines() {
-    const lines = this.board.clearLines();
-    if (lines > 0) {
-      this.linesCleared += lines;
-      this.score += lines * 100; // simple scoring
-      // increase level every 10 cleared lines
-      this.level = Math.floor(this.linesCleared / 10) + 1;
-    }
-  }
-
-  /** Spawn the next piece; set a new upcoming piece */
-  private spawnNextPiece() {
-    this.currentPiece = this.nextPiece;
-    this.nextPiece = new Piece(randomKey(Tetrominos) as keyof typeof Tetrominos);
-    this.position = { x: Math.floor(this.width / 2) - 2, y: 0 };
-    if (!this.board.canPlace(this.currentPiece.shape, this.position.x, this.position.y)) {
+  private spawnNext(): void {
+    this.current = this.next;
+    this.next = randomPair(this.rng);
+    this.position = this.spawnPosition();
+    if (!this.board.canPlaceBlocks(this.cellsAt())) {
       this._gameOver = true;
     }
   }
 }
+
+export type { Block };
