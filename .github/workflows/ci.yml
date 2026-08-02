@@ -81,9 +81,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-      # Official install path (npx); deno run npm:playwright install can hang on CI
-      - name: Install Playwright Chromium
-        run: npx --yes playwright install chromium --with-deps
+      # System libs via official install-deps; browser binary via the same
+      # npm:playwright resolution Deno uses at test time (avoids version skew).
+      - name: Install Playwright system dependencies
+        run: npx --yes playwright install-deps chromium
+      - name: Install Chromium for Deno Playwright
+        run: deno run -A npm:playwright install chromium
       - name: Build bundle
         run: deno task build
       - name: E2E smoke (Pixi canvas in browser)
