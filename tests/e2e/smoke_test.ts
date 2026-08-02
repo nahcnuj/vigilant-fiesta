@@ -60,18 +60,16 @@ Deno.test({
       const errors: string[] = [];
       page.on("pageerror", (e) => errors.push(String(e)));
 
-      await page.goto(ORIGIN + "/index.html", { waitUntil: "networkidle" });
+      // networkidle never settles while Pixi ticker keeps the page busy
+      await page.goto(ORIGIN + "/index.html", { waitUntil: "domcontentloaded" });
 
       const title = await page.title();
-      assertEquals(title.includes("落ち物") || title.length > 0, true);
+      assert(title.includes("落ち物"), `unexpected title: ${title}`);
 
-      const hasContainer = await page.locator("#game-container").count();
-      assertEquals(hasContainer, 1);
-
-      // Pixi attaches canvas under the container
-      await page.waitForSelector("#game-container canvas", { timeout: 10000 });
+      await page.waitForSelector("#game-container", { timeout: 10000 });
+      await page.waitForSelector("#game-container canvas", { timeout: 15000 });
       const canvasCount = await page.locator("#game-container canvas").count();
-      assert(canvasCount >= 1, "expected Pixi canvas inside #game-container");
+      assert(canvasCount >= 1, "expected canvas inside #game-container");
 
       assertEquals(errors, [], `page errors: ${errors.join("; ")}`);
     } finally {

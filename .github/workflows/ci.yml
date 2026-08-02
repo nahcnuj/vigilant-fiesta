@@ -72,13 +72,18 @@ jobs:
 
   e2e:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "2.x"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      # Official install path (npx); deno run npm:playwright install can hang on CI
       - name: Install Playwright Chromium
-        run: deno run -A npm:playwright install chromium --with-deps
+        run: npx --yes playwright install chromium --with-deps
       - name: Build bundle
         run: deno task build
       - name: E2E smoke (Pixi canvas in browser)
