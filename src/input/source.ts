@@ -4,7 +4,7 @@ import type { ActionHandler } from "./controller.ts";
  * An input device or UI surface that produces {@link GameAction}s.
  * Call the returned function to detach listeners / tear down DOM.
  *
- * Planned sources: keyboard (now), on-screen buttons, touch gestures.
+ * Current: keyboard. Planned: on-screen buttons (and other sources as needed).
  */
 export interface InputSource {
   attach(handler: ActionHandler): () => void;

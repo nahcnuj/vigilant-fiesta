@@ -28,24 +28,24 @@ src/input/
   controller.ts    # GameAction → Game メソッド
   source.ts        # InputSource（attach / detach）
   keyboard.ts      # キーボード実装（現行）
-  # 予定: buttons.ts（画面上ボタン）, gestures.ts（スワイプ等）
+  # 予定: 画面上ボタン用 InputSource（ジェスチャは別途検討）
 ```
 
 ビルド: `deno task build` → `dist/main.js`。
 
 ## 入力アーキテクチャ（スマホ対応の布石）
 
-操作はすべて **`GameAction`** に正規化する。Game はキーやタッチを知らない。
+操作はすべて **`GameAction`** に正規化する。Game は具体的な入力デバイスを知らない。
 
-| GameAction | 現行キーボード | 想定 UI（スマホ） | 想定ジェスチャ（任意） |
-|------------|----------------|-------------------|------------------------|
-| `moveLeft` | ← | 「左へ」ボタン | 左スワイプ |
-| `moveRight` | → | 「右へ」ボタン | 右スワイプ |
-| `rotateCW` | ↓ | 「回転」ボタン | タップ |
-| `hardDrop` | ↑ | 「一気に落とす」ボタン | 下スワイプ |
+| GameAction | 現行キーボード | 想定 UI（画面上ボタン） |
+|------------|----------------|-------------------------|
+| `moveLeft` | ← | 「左へ」 |
+| `moveRight` | → | 「右へ」 |
+| `rotateCW` | ↓ | 「回転」 |
+| `hardDrop` | ↑ | 「一気に落とす」 |
 
 ```
-InputSource (keyboard / buttons / gestures)
+InputSource (keyboard / on-screen buttons / …)
         │ GameAction
         ▼
 ActionHandler = createGameController(game)
@@ -55,8 +55,8 @@ ActionHandler = createGameController(game)
 ```
 
 - **画面上ボタン**: 各 `GameAction` に 1 コントロール。ラベルは `GAME_ACTION_LABELS` を再利用（操作説明にも使える）。
-- **ジェスチャ**: 同じ `InputSource` 契約で追加。ボタンと併用可（`attachSources`）。
-- **操作説明**: デバイスごとに「キー ↔ ラベル」または「ボタン ↔ ラベル」を出せばよい（文言の単一ソースは `GAME_ACTION_LABELS` + キーマップ表）。
+- **操作説明**: 「キー ↔ ラベル」または「ボタン ↔ ラベル」を出せばよい（文言の単一ソースは `GAME_ACTION_LABELS` + キーマップ表）。
+- **ジェスチャ**: 未定。必要になったら同じ `InputSource` 契約で検討する。
 
 現状の配線: `setupInput(game)` はキーボード source のみ attach。
 
@@ -66,7 +66,7 @@ ActionHandler = createGameController(game)
 |------|--------|------|
 | **Unit** | `src/**/*.test.ts`（実装隣） | ドメイン仕様（Board / Pair / formula / Game） |
 | **Integration** | `tests/integration/` | 複数モジュールを公開 API でつなぐ |
-| **E2E** | `tests/e2e/` | ブラウザで index + bundle + Pixi canvas |
+| **E2E** | `tests/e2e/` | 現状は起動スモーク（ページ＋ canvas）。開始〜終了の一連プレイは未カバー |
 
 `layout.ts` は renderer パッケージ内のヘルパ（Unit: `layout.test.ts`）。ドメインは Unit / Integration、画面接続は E2E。
 
