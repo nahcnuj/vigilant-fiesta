@@ -19,11 +19,14 @@ jobs:
         with:
           deno-version: "2.x"
       - name: Run unit tests with coverage
-        run: deno test --allow-read --allow-net --coverage=cov
-      - name: Generate coverage report
+        run: deno test --allow-read --allow-write --allow-run --allow-net --coverage=cov
+      - name: Generate coverage report and enforce ≥90%
+        env:
+          NO_COLOR: "1"
         run: |
           deno coverage cov --lcov > coverage.lcov
           deno coverage cov > coverage.txt
+          deno run --allow-read --allow-write scripts/coverage_report.ts coverage.txt coverage.md
       - name: Comment coverage to PR
         if: github.event_name == 'pull_request'
         continue-on-error: true
@@ -31,16 +34,15 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const summary = fs.readFileSync('coverage.txt', 'utf8').trim();
-            const marker = '<!-- coverage-report -->';
-            const body = `${marker}\n### 📊 Coverage Report\n\`\`\`\n${summary}\n\`\`\``;
+            const body = '<!-- coverage-report -->\n' +
+              fs.readFileSync('coverage.md', 'utf8').trim() + '\n';
             const { owner, repo } = context.repo;
             const issue_number = context.issue.number;
             const { data: comments } = await github.rest.issues.listComments({
               owner, repo, issue_number,
             });
             const existing = comments.find((c) =>
-              c.user?.type === 'Bot' && c.body?.includes(marker)
+              c.user?.type === 'Bot' && c.body?.includes('<!-- coverage-report -->')
             );
             if (existing) {
               await github.rest.issues.updateComment({
@@ -58,4 +60,4 @@ jobs:
           path: |
             coverage.lcov
             coverage.txt
-
+            coverage.md

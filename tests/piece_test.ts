@@ -1,5 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
-import { Piece, Tetrominos } from "../src/piece.ts";
+import {
+  Piece,
+  rotateClockwise,
+  rotateCounterClockwise,
+} from "../src/piece.ts";
 
 Deno.test("Piece rotation clockwise", () => {
   const piece = new Piece("L");
@@ -34,4 +38,38 @@ Deno.test("Piece rotation counter‑clockwise", () => {
   piece.rotateCCW();
   piece.rotateCCW();
   assertEquals(piece.shape, original);
+});
+
+Deno.test("rotateClockwise matrix helper", () => {
+  const m = [
+    [1, 2],
+    [3, 4],
+    [5, 6],
+  ];
+  assertEquals(rotateClockwise(m), [
+    [5, 3, 1],
+    [6, 4, 2],
+  ]);
+});
+
+Deno.test("rotateCounterClockwise matrix helper", () => {
+  const m = [
+    [1, 2, 3],
+    [4, 5, 6],
+  ];
+  assertEquals(rotateCounterClockwise(m), [
+    [3, 6],
+    [2, 5],
+    [1, 4],
+  ]);
+  // four CCW rotations restore original
+  let r = m;
+  for (let i = 0; i < 4; i++) r = rotateCounterClockwise(r);
+  assertEquals(r, m);
+});
+
+Deno.test("Piece shape setter replaces current rotation", () => {
+  const piece = new Piece("O");
+  piece.shape = [[1, 0], [0, 1]];
+  assertEquals(piece.shape, [[1, 0], [0, 1]]);
 });

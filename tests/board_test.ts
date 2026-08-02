@@ -31,3 +31,23 @@ Deno.test("Board clears full lines", () => {
     assertEquals(grid[3][x], null);
   }
 });
+
+Deno.test("Board placePiece skips empty cells and rejects OOB / overlap", () => {
+  const board = new Board(4, 4);
+  const withHoles = [
+    [1, 0],
+    [0, 1],
+  ];
+  board.placePiece(withHoles, 1, 1);
+  const grid = board.getGrid();
+  assertEquals(grid[1][1], 1);
+  assertEquals(grid[1][2], null);
+  assertEquals(grid[2][1], null);
+  assertEquals(grid[2][2], 1);
+
+  assert(!board.canPlace([[1]], -1, 0));
+  assert(!board.canPlace([[1]], 0, -1));
+  assert(!board.canPlace([[1]], 4, 0));
+  assert(!board.canPlace([[1]], 0, 4));
+  assert(!board.canPlace([[1]], 1, 1)); // occupied
+});
