@@ -1,5 +1,5 @@
 import { Game } from "./game.ts";
-import { Renderer } from "./renderer.ts";
+import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input.ts";
 
 // requirements: 8 columns × 10 rows

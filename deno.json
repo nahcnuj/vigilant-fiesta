@@ -1,7 +1,10 @@
 {
   "tasks": {
-    "test": "deno test --allow-read --allow-net src/",
-    "build": "deno bundle --allow-read --allow-net src/main.ts dist/main.js",
+    "test": "deno test --allow-read --allow-net src/ tests/integration/",
+    "test:unit": "deno test --allow-read --allow-net src/",
+    "test:integration": "deno test --allow-read --allow-net tests/integration/",
+    "test:e2e": "deno test --allow-all tests/e2e/",
+    "build": "deno bundle --allow-import src/main.ts -o dist/main.js",
     "dev": "deno task build && npx --yes serve ."
   }
 }

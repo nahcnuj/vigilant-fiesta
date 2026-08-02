@@ -14,9 +14,7 @@ export interface GameOptions {
   rng?: () => number;
 }
 
-/**
- * Mutable session for the number/operator falling puzzle (not Tetris).
- */
+/** Mutable play session: falling pairs, placement, formulas, score. */
 export class Game {
   board: Board;
   current: FallingPair;

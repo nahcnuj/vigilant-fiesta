@@ -1,5 +1,5 @@
-import type { Cell } from "./board.ts";
-import type { Block } from "./piece.ts";
+import type { Cell } from "../board.ts";
+import type { Block } from "../piece.ts";
 
 /** Canvas cell size so the field fits within maxW×maxH. */
 export function canvasCellSize(
@@ -24,7 +24,7 @@ export type PaintRect = {
   hue: number;
 };
 
-/** Non-null cells as axis-aligned rects (layout only, no Pixi). */
+/** Non-null cells as axis-aligned rects for the renderer. */
 export function paintList(grid: Cell[][], cellSize: number): PaintRect[] {
   const out: PaintRect[] = [];
   for (let y = 0; y < grid.length; y++) {

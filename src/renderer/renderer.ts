@@ -1,8 +1,8 @@
 import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
-import type { Cell } from "./board.ts";
-import { canvasCellSize, paintList } from "./render_layout.ts";
+import type { Cell } from "../board.ts";
+import { canvasCellSize, paintList } from "./layout.ts";
 
-/** PixiJS shell: DOM attach + draw. Layout/color rules live in render_layout.ts. */
+/** Pixi view: Application, canvas, and draw. */
 export class Renderer {
   readonly app: PIXI.Application;
   private cellSize: number;
@@ -31,10 +31,11 @@ export class Renderer {
   render(grid: Cell[][]) {
     this.graphics.clear();
     for (const r of paintList(grid, this.cellSize)) {
-      const color = PIXI.utils.hex2string(
-        PIXI.utils.rgb2hex(PIXI.utils.hsl2rgb([r.hue / 360, 0.7, 0.55])),
+      // ColorSource HSL object — PIXI.Color (since 7.2)
+      // https://pixijs.download/v7.4.0/docs/PIXI.Color.html
+      this.graphics.beginFill(
+        new PIXI.Color({ h: r.hue, s: 70, l: 55 }),
       );
-      this.graphics.beginFill(parseInt(color.slice(1), 16));
       this.graphics.drawRect(r.x, r.y, r.w, r.h);
       this.graphics.endFill();
     }

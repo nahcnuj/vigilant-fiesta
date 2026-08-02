@@ -18,8 +18,8 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "2.x"
-      - name: Run unit tests with coverage
-        run: deno test --allow-read --allow-net --coverage=cov
+      - name: Unit + integration tests with coverage
+        run: deno test --allow-read --allow-net --coverage=cov src/ tests/integration/
       - name: Generate coverage report
         env:
           NO_COLOR: "1"
@@ -69,3 +69,17 @@ jobs:
           path: |
             coverage.lcov
             coverage.txt
+
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: "2.x"
+      - name: Install Playwright Chromium
+        run: deno run -A npm:playwright install chromium --with-deps
+      - name: Build bundle
+        run: deno task build
+      - name: E2E smoke (Pixi canvas in browser)
+        run: deno task test:e2e

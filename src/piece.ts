@@ -1,4 +1,4 @@
-/** Single field cell content: digit or arithmetic operator (not a tetromino). */
+/** Digit or arithmetic operator on the field. */
 export type Operator = "+" | "-" | "*" | "/";
 
 export type Block =
@@ -24,8 +24,7 @@ export function randomBlock(rng: () => number = Math.random): Block {
 }
 
 /**
- * Falling pair: two blocks that move/rotate together (puyo-style),
- * as specified in requirements — not a Tetris tetromino.
+ * Falling pair: two blocks that move and rotate together.
  *
  * Orientation (pivot at board position):
  *  0: second is below pivot

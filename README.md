@@ -1,5 +1,13 @@
 # vigilant-fiesta
-落ち物パズルゲーム・蘇
+
+[落ち物パズルゲーム](https://www.nahcnuj.work/works/2013/01_ochimono.html) の Web リメイク（蘇）。
+
+上から降る数字と記号のブロックを数式の形に並べ、計算結果をスコアにする。
 
 ## Demo
-Run the game with `deno task build && npx serve dist` (or open `index.html` directly).
+
+```bash
+deno task build
+# リポジトリ直下を配信（index.html / style.css / dist/main.js）
+npx serve .
+```
