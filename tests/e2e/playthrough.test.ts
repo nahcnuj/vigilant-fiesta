@@ -1,9 +1,9 @@
-﻿/**
+/**
  * E2E: start → hard-drop only → game over → result.
  * Uses `?e2e=1` (digits-only pairs) so the board fills without formula clears.
  */
 import { spawn } from "node:child_process";
-import { chromium } from "npm:playwright";
+import { chromium } from "playwright";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));

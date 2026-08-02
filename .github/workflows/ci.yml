@@ -69,21 +69,33 @@ jobs:
             coverage.lcov
             coverage.txt
 
+  playwright-version:
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.ver.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: ver
+        run: |
+          VER=$(jq -r '.imports.playwright // empty' deno.json | sed -E 's/^npm:playwright@//')
+          if [ -z "$VER" ]; then
+            echo "playwright version not found in deno.json imports" >&2
+            exit 1
+          fi
+          IMAGE="mcr.microsoft.com/playwright:v${VER}"
+          echo "image=${IMAGE}" >> "$GITHUB_OUTPUT"
+
   e2e:
+    needs: playwright-version
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    container:
+      image: ${{ needs.playwright-version.outputs.image }}
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "2.x"
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-      - name: Install Playwright + Chromium
-        run: |
-          npx --yes playwright install-deps chromium
-          deno run -A npm:playwright install chromium
       - name: Build bundle
         run: deno task build
       - name: E2E tests

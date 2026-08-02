@@ -1,4 +1,7 @@
 {
+  "imports": {
+    "playwright": "npm:playwright@1.62.1"
+  },
   "tasks": {
     "test": "deno test --allow-read --allow-net src/ tests/integration/",
     "test:unit": "deno test --allow-read --allow-net src/",
