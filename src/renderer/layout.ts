@@ -1,7 +1,6 @@
 import type { Cell } from "../board.ts";
 import type { Block } from "../piece.ts";
 
-/** Canvas cell size so the field fits within maxW×maxH. */
 export function canvasCellSize(
   cols: number,
   rows: number,
@@ -11,36 +10,24 @@ export function canvasCellSize(
   return Math.min(maxW / cols, maxH / rows);
 }
 
-/** Hue for a block (numbers vary; operators share one hue). */
 export function blockHue(block: Block): number {
   return block.kind === "num" ? (block.value * 36) % 360 : 200;
 }
 
-/** Visible label on a cell. */
 export function blockLabel(block: Block): string {
   if (block.kind === "num") return String(block.value);
   switch (block.value) {
-    case "+":
-      return "+";
-    case "-":
-      return "−";
-    case "*":
-      return "×";
-    case "/":
-      return "÷";
+    case "+": return "+";
+    case "-": return "−";
+    case "*": return "×";
+    case "/": return "÷";
   }
 }
 
 export type PaintCell = {
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-  hue: number;
-  label: string;
+  x: number; y: number; w: number; h: number; hue: number; label: string;
 };
 
-/** Board cells + optional active (falling) cells as paint list. */
 export function paintList(
   grid: Cell[][],
   cellSize: number,
@@ -52,24 +39,18 @@ export function paintList(
       const cell = grid[y][x];
       if (cell === null) continue;
       out.push({
-        x: x * cellSize,
-        y: y * cellSize,
-        w: cellSize - 1,
-        h: cellSize - 1,
-        hue: blockHue(cell),
-        label: blockLabel(cell),
+        x: x * cellSize, y: y * cellSize,
+        w: cellSize - 1, h: cellSize - 1,
+        hue: blockHue(cell), label: blockLabel(cell),
       });
     }
   }
   for (const a of active) {
     if (a.y < 0) continue;
     out.push({
-      x: a.x * cellSize,
-      y: a.y * cellSize,
-      w: cellSize - 1,
-      h: cellSize - 1,
-      hue: blockHue(a.block),
-      label: blockLabel(a.block),
+      x: a.x * cellSize, y: a.y * cellSize,
+      w: cellSize - 1, h: cellSize - 1,
+      hue: blockHue(a.block), label: blockLabel(a.block),
     });
   }
   return out;
