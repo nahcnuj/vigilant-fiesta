@@ -25,3 +25,12 @@ Deno.test("セル消去後、列ごとに下へ詰める", () => {
   assertEquals(board.get(0, 2), num(1));
   assertEquals(board.get(0, 0), null);
 });
+
+Deno.test("get は場外で null、clearCells は場外を無視する", () => {
+  const board = new Board(3, 3);
+  assertEquals(board.get(-1, 0), null);
+  assertEquals(board.get(0, 99), null);
+  board.placeBlocks([{ x: 1, y: 1, block: num(4) }]);
+  board.clearCells([{ x: -1, y: 0 }, { x: 1, y: 1 }]);
+  assertEquals(board.get(1, 1), null);
+});
