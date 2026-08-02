@@ -3,7 +3,7 @@
  * `?e2e=1` → digits-only pairs (no formula clears).
  */
 import { spawn } from "node:child_process";
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -23,8 +23,7 @@ async function waitForServer(url: string, attempts = 100): Promise<void> {
   throw new Error(`server not ready: ${url}`);
 }
 
-async function hardDrop(page: Awaited<ReturnType<Awaited<ReturnType<typeof chromium.launch>>["newPage"]>>) {
-  // Dispatch on window so createKeyboardSource(globalThis) always receives it
+async function hardDrop(page: Page): Promise<void> {
   await page.evaluate(() => {
     window.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -56,7 +55,7 @@ Deno.test({
       await waitForServer(`${ORIGIN}/index.html`);
       browser = await chromium.launch({
         headless: true,
-        args: ["--no-sandbox", "--disable-gpu"],
+        args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
       });
       const page = await browser.newPage();
       const errors: string[] = [];
@@ -79,11 +78,16 @@ Deno.test({
       await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
 
       await page.waitForSelector("#next-panel", { timeout: 5_000 });
-      await page.waitForFunction(() => {
-        const a = document.getElementById("next-pivot")?.textContent?.trim();
-        const b = document.getElementById("next-secondary")?.textContent?.trim();
-        return !!(a && a.length > 0 && b && b.length > 0);
-      }, { timeout: 10_000 });
+      // Playwright: (fn, arg, options) — options must be 3rd argument
+      await page.waitForFunction(
+        () => {
+          const a = document.getElementById("next-pivot")?.textContent?.trim();
+          const b = document.getElementById("next-secondary")?.textContent?.trim();
+          return !!(a && a.length > 0 && b && b.length > 0);
+        },
+        undefined,
+        { timeout: 10_000 },
+      );
 
       const deadline = Date.now() + 60_000;
       while (Date.now() < deadline) {
@@ -93,12 +97,8 @@ Deno.test({
       }
 
       if (!(await page.locator("#screen-result:not([hidden])").count())) {
-        const title = await page.locator("#screen-title").getAttribute("hidden");
-        const playing = await page.locator("#screen-playing").getAttribute("hidden");
         const err = errors.length ? errors.join("; ") : "(no page errors)";
-        throw new Error(
-          `result not shown within timeout; title.hidden=${title} playing.hidden=${playing}; ${err}`,
-        );
+        throw new Error(`result not shown within timeout; ${err}`);
       }
 
       const resultText = await page.locator("#result-score").innerText();
