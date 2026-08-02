@@ -1,8 +1,7 @@
 import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
-import { blockHue, blockLabel } from "./renderer/layout.ts";
-import type { Block } from "./piece.ts";
+import { nextPreview } from "./renderer/layout.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
@@ -51,17 +50,15 @@ function showScreen(id: ScreenId): void {
   }
 }
 
-function paintNextCell(el: HTMLElement, block: Block): void {
-  el.textContent = blockLabel(block);
-  el.style.background = `hsl(${blockHue(block)} 70% 45%)`;
-}
-
 function updateHud(): void {
   if (!game) return;
   scoreEl.textContent = `Score: ${game.score}`;
   levelEl.textContent = `Level: ${game.level}`;
-  paintNextCell(nextPivotEl, game.next.pivot);
-  paintNextCell(nextSecondaryEl, game.next.secondary);
+  const preview = nextPreview(game.next);
+  nextPivotEl.textContent = preview.pivot.label;
+  nextPivotEl.style.background = `hsl(${preview.pivot.hue} 70% 45%)`;
+  nextSecondaryEl.textContent = preview.secondary.label;
+  nextSecondaryEl.style.background = `hsl(${preview.secondary.hue} 70% 45%)`;
 }
 
 function activeCells() {

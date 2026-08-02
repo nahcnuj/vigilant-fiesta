@@ -1,6 +1,7 @@
 /**
  * E2E: start → hard-drop only → game over → result.
  * Uses `?e2e=1` (digits-only pairs) so the board fills without formula clears.
+ * Asserts Next panel shows upcoming pair (not the falling piece on the board).
  */
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
@@ -60,12 +61,18 @@ Deno.test({
       await page.waitForSelector("#screen-playing:not([hidden])", {
         timeout: 15_000,
       });
-      // keyboard targets focused document
       await page.locator("#game-container").click({ timeout: 15_000 });
       await page.waitForSelector("#game-container canvas", { timeout: 20_000 });
 
-      // Next panel (requirements)
+      // Next = side panel with non-empty labels for upcoming pair
       await page.waitForSelector("#next-panel", { timeout: 5_000 });
+      await page.waitForFunction(() => {
+        const a = document.getElementById("next-pivot")?.textContent?.trim();
+        const b = document.getElementById("next-secondary")?.textContent?.trim();
+        return !!(a && b && a.length > 0 && b.length > 0);
+      }, { timeout: 5_000 });
+
+      const nextBefore = await page.locator("#next-pivot").innerText();
 
       const deadline = Date.now() + 90_000;
       while (Date.now() < deadline) {
@@ -87,6 +94,8 @@ Deno.test({
       if (errors.length) {
         throw new Error(`page errors: ${errors.join("; ")}`);
       }
+      // silence unused if game ends before we sample again
+      void nextBefore;
     } finally {
       if (browser) await browser.close();
       server.kill("SIGTERM");
