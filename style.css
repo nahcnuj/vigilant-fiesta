@@ -137,6 +137,7 @@ button:disabled {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 0.3rem;
 }
 
@@ -301,5 +302,11 @@ button:disabled {
   }
 
   .next-title { margin-bottom: 0; }
-  #next-blocks { flex-direction: row; }
+  #next-blocks {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+}
 }

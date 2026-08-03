@@ -5,6 +5,7 @@ import { canvasCellSize, paintList } from "./layout.ts";
 
 /** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line → risk of game over. */
 const SPAWN_ROWS = 2;
+const DANGER_LINE_ROW = 1;
 
 export class Renderer {
   readonly app: PIXI.Application;
@@ -53,7 +54,7 @@ export class Renderer {
     g.endFill();
 
     // --- Danger line: below spawn zone (y == SPAWN_ROWS) ---
-    const ly = SPAWN_ROWS * cs;
+    const ly = DANGER_LINE_ROW * cs;
     g.lineStyle(2, 0xff5a5a, 0.9);
     // dashed horizontal line
     const dash = 8;
