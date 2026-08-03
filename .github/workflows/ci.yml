@@ -18,7 +18,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "2.x"
@@ -76,7 +76,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: denoland/setup-deno@v2
         with:
           deno-version: "2.x"
@@ -98,7 +98,7 @@ jobs:
     outputs:
       image: ${{ steps.ver.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - id: ver
         run: |
           VER=$(jq -r '.imports.playwright // empty' deno.json | sed -E 's/^npm:playwright@//')
@@ -116,7 +116,7 @@ jobs:
     container:
       image: ${{ needs.playwright-version.outputs.image }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install unzip
         run: apt-get update && apt-get install -y unzip
       - uses: actions/download-artifact@v4
