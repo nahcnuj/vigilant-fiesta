@@ -7,6 +7,9 @@ import type { Block } from "./piece.ts";
 const WIDTH = 8;
 const HEIGHT = 10;
 
+const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
+
+
 /** AdSense: enable retry after filled/unfilled or fallback timeout. */
 const AD_WAIT_FALLBACK_MS = 4000;
 
@@ -214,6 +217,8 @@ function destroyRenderer(): void {
 }
 
 function startPlay(): void {
+  
+  document.title = DEFAULT_PAGE_TITLE;
   adWaitToken++;
   btnRetry.disabled = true;
   setResultOverlayVisible(false);
@@ -294,6 +299,7 @@ function endPlay(): void {
     }
   }
   resultScoreEl.textContent = `Score: ${finalScore}`;
+  document.title = `Score: ${finalScore} | ${DEFAULT_PAGE_TITLE}`;
   btnRetry.disabled = true;
   setResultOverlayVisible(true);
 
