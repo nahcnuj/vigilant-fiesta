@@ -31,7 +31,7 @@ Deno.test("接地すると盤に固定され next が current になる", () => 
 Deno.test("数式が揃うと消えスコアが増える", () => {
   const game = new Game(8, 10, {
     current: pair(num(9), num(9)),
-    next: pair(num(0), num(0)),
+    next: pair(num(1), num(1)),
   });
   // 盤面に 1 +  を置き、落下で 3 を置く… ペアは2個なので事前配置で 1 + 3
   game.board.placeBlocks([
@@ -125,7 +125,7 @@ Deno.test("tick で接地すると固定される", () => {
 Deno.test("スコア 250 ごとにレベルが上がる", () => {
   const game = new Game(8, 10, {
     current: pair(num(9), num(9)),
-    next: pair(num(0), num(0)),
+    next: pair(num(1), num(1)),
   });
   // 5*5=25 を 10 本 → 250。落下帯と重ならない下段に置く
   for (let i = 0; i < 10; i++) {

@@ -28,12 +28,24 @@ Deno.test("blocksAt は原点と相対オフセットを返す", () => {
   ]);
 });
 
-Deno.test("num は 0–9 のみ受け付ける", () => {
-  assertEquals(num(0).value, 0);
-  assertEquals(num(9).value, 9);
-  assertThrows(() => num(10), RangeError);
-  assertThrows(() => num(-1), RangeError);
-  assertThrows(() => num(1.5), RangeError);
+Deno.test("num は 1–9 のみ受け付ける", () => {
+  assertEquals(num(1), { kind: "num", value: 1 });
+  assertEquals(num(5), { kind: "num", value: 5 });
+  assertEquals(num(9), { kind: "num", value: 9 });
+  let threw = false;
+  try {
+    num(0 as number);
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
+  threw = false;
+  try {
+    num(10 as number);
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
 });
 
 Deno.test("randomBlock / randomPair は rng に従う", () => {

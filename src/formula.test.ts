@@ -59,15 +59,6 @@ Deno.test("掛け算と割り算を評価する", () => {
   assertEquals(div?.result, 2.5);
 });
 
-Deno.test("ゼロ除算は数式として採用しない", () => {
-  const board = new Board(5, 3);
-  board.placeBlocks([
-    { x: 0, y: 0, block: num(5) },
-    { x: 1, y: 0, block: op("/") },
-    { x: 2, y: 0, block: num(0) },
-  ]);
-  assertEquals(findFormulas(board), []);
-});
 
 Deno.test("縦方向の数式を検出する", () => {
   const board = new Board(3, 5);

@@ -19,7 +19,7 @@ Deno.test("integration: hard drop locks pair and next becomes current", () => {
 Deno.test("integration: existing num-op-num clears on resolve after lock", () => {
   const game = new Game(8, 10, {
     current: new FallingPair(num(9), num(8)),
-    next: new FallingPair(num(0), num(0)),
+    next: new FallingPair(num(1), num(1)),
   });
   game.board.placeBlocks([
     { x: 0, y: 9, block: num(1) },
