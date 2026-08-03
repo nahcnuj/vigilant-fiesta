@@ -10,6 +10,16 @@
 import { spawn } from "node:child_process";
 import { chromium, type Browser, type Page } from "playwright";
 
+async function assertTitleHasScore(page: Page, expectScore: boolean): Promise<void> {
+  const title = await page.title();
+  const has = title.includes("Score");
+  if (has !== expectScore) {
+    throw new Error(
+      `document.title Score expected ${expectScore}, got: ${title}`,
+    );
+  }
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
 }
@@ -121,11 +131,13 @@ async function runPlaythrough(
   hardDrop: (page: Page) => Promise<void>,
   errors: string[],
 ): Promise<void> {
-  await page.locator("#btn-start").click({ timeout: 15_000 });
+  await assertTitleHasScore(page, false); // title before start
+      await page.locator("#btn-start").click({ timeout: 15_000 });
   await page.waitForSelector("#screen-playing:not([hidden])", {
     timeout: 15_000,
   });
   await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
+      await assertTitleHasScore(page, false); // title while playing
 
   const deadline = Date.now() + 60_000;
   while (Date.now() < deadline) {
@@ -141,11 +153,16 @@ async function runPlaythrough(
   }
 
   await page.waitForSelector("#game-container canvas", { timeout: 5_000 });
+      await assertTitleHasScore(page, false); // title while playing
   if (await page.locator("#screen-playing[hidden]").count()) {
     throw new Error("playing screen should stay visible on game over");
   }
 
-  const resultText = await page.locator("#result-score").innerText();
+  const pageTitle = await page.title();
+      if (!/^Score:\s*\d+\s*\|\s*落ち物パズルゲーム・蘇$/.test(pageTitle)) {
+        throw new Error(`expected score in document.title, got: ${pageTitle}`);
+      }
+      const resultText = await page.locator("#result-score").innerText();
   if (!/^Score:\s*\d+/.test(resultText)) {
     throw new Error(`unexpected result score text: ${resultText}`);
   }
@@ -198,6 +215,9 @@ Deno.test({
         undefined,
         { timeout: 5_000 },
       );
+      await page.locator("#btn-retry").click({ timeout: 15_000 });
+      await page.waitForSelector("#screen-playing:not([hidden])", { timeout: 15_000 });
+      await assertTitleHasScore(page, false); // title after retry
     });
   },
 });
