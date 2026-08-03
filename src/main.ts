@@ -40,20 +40,18 @@ function blockFill(block: Block): string {
   return `hsl(${blockHue(block)} 70% 45%)`;
 }
 
-/** Title rule chips: labels + colors from layout.ts only. */
 function paintRuleExample(): void {
   const root = document.querySelector("[data-rule-example]");
   if (!root) return;
-  for (const el of root.querySelectorAll<HTMLElement>("[data-block]")) {
-    const raw = el.getAttribute("data-block");
-    if (!raw) continue;
-    try {
-      const block = JSON.parse(raw) as Block;
-      el.textContent = blockLabel(block);
-      el.style.background = blockFill(block);
-    } catch {
-      /* ignore */
-    }
+  for (const el of root.querySelectorAll<HTMLElement>(".rule-cell")) {
+    const kind = el.dataset.kind;
+    const raw = el.dataset.value;
+    if (!kind || raw === undefined) continue;
+    const block: Block = kind === "num"
+      ? { kind: "num", value: Number(raw) }
+      : { kind: "op", value: raw as "+" | "-" | "*" | "/" };
+    el.textContent = blockLabel(block);
+    el.style.background = blockFill(block);
   }
 }
 
@@ -306,6 +304,7 @@ function endPlay(): void {
   });
 }
 
+paintRuleExample();
 btnStart.addEventListener("click", () => startPlay());
 btnRetry.addEventListener("click", () => {
   if (btnRetry.disabled) return;
