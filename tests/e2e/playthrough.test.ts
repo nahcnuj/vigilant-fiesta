@@ -1,12 +1,17 @@
 /**
- * E2E: start → hard-drop only → game over → result.
- * `?e2e=1` → digits-only pairs (no formula clears).
+ * E2E: start → hard-drop only → game over overlay (board stays).
+ * `?e2e=1` → digits-only pairs; ad gate skipped in app.
  */
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
+}
+
+function isBenignAdNoise(msg: string): boolean {
+  return /adsbygoogle|googlesyndication|pagead2|adservice|googleads|Failed to load resource.*\/pagead/i
+    .test(msg);
 }
 
 async function waitForServer(url: string, attempts = 100): Promise<void> {
@@ -46,9 +51,14 @@ Deno.test({
       });
       const page = await browser.newPage();
       const errors: string[] = [];
-      page.on("pageerror", (e) => errors.push(String(e)));
+      page.on("pageerror", (e) => {
+        const s = String(e);
+        if (!isBenignAdNoise(s)) errors.push(s);
+      });
       page.on("console", (msg) => {
-        if (msg.type() === "error") errors.push(`console: ${msg.text()}`);
+        if (msg.type() !== "error") return;
+        const s = msg.text();
+        if (!isBenignAdNoise(s)) errors.push(`console: ${s}`);
       });
 
       await page.goto(`${ORIGIN}/index.html?e2e=1`, {
@@ -56,18 +66,20 @@ Deno.test({
         timeout: 30_000,
       });
 
+      await page.waitForSelector("#site-title", { timeout: 10_000 });
       await page.locator("#btn-start").click({ timeout: 15_000 });
       await page.waitForSelector("#screen-playing:not([hidden])", {
         timeout: 15_000,
       });
       await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
 
-      // Next panel must show labels for upcoming pair
       await page.waitForSelector("#next-panel", { timeout: 5_000 });
       const nextPivot = (await page.locator("#next-pivot").innerText()).trim();
       const nextSec = (await page.locator("#next-secondary").innerText()).trim();
       if (!nextPivot || !nextSec) {
-        throw new Error(`Next panel empty: pivot="${nextPivot}" secondary="${nextSec}"`);
+        throw new Error(
+          `Next panel empty: pivot="${nextPivot}" secondary="${nextSec}"`,
+        );
       }
 
       const deadline = Date.now() + 60_000;
@@ -88,13 +100,30 @@ Deno.test({
 
       if (!(await page.locator("#result-overlay:not([hidden])").count())) {
         const err = errors.length ? errors.join("; ") : "(no page errors)";
-        throw new Error(`result not shown within timeout; ${err}`);
+        throw new Error(`result overlay not shown within timeout; ${err}`);
+      }
+
+      // Board remains under overlay
+      await page.waitForSelector("#game-container canvas", { timeout: 5_000 });
+      if (await page.locator("#screen-playing[hidden]").count()) {
+        throw new Error("playing screen should stay visible on game over");
       }
 
       const resultText = await page.locator("#result-score").innerText();
       if (!/^Score:\s*\d+/.test(resultText)) {
         throw new Error(`unexpected result score text: ${resultText}`);
       }
+
+      // e2e mode unlocks retry without waiting for real ads
+      await page.waitForFunction(
+        () => {
+          const b = document.getElementById("btn-retry") as HTMLButtonElement | null;
+          return !!b && !b.disabled;
+        },
+        undefined,
+        { timeout: 5_000 },
+      );
+
       if (errors.length) {
         throw new Error(`page errors: ${errors.join("; ")}`);
       }
