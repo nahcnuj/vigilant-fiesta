@@ -130,4 +130,14 @@ jobs:
       - name: E2E tests
         env:
           PLAYWRIGHT_BROWSERS_PATH: /ms-playwright
-        run: deno task test:e2e
+          PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
+        run: |
+          set -eux
+          CHROME_PATH="$(find /ms-playwright -type f -path '*/chrome-linux/chrome' 2>/dev/null | head -n 1 || true)"
+          if [ -z "$CHROME_PATH" ]; then
+            CHROME_PATH="$(find /ms-playwright -type f -name chrome 2>/dev/null | head -n 1 || true)"
+          fi
+          echo "CHROME_PATH=${CHROME_PATH}"
+          ls -la /ms-playwright || true
+          export CHROME_PATH
+          deno task test:e2e

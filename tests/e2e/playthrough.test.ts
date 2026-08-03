@@ -1,9 +1,8 @@
 /**
- * E2E: start → hard-drop only → game over overlay (board stays).
- * `?e2e=1` → digits-only pairs; ad gate skipped in app.
+ * E2E: start → hard-drop → game over overlay (board stays).
+ * `?e2e=1` → deterministic digits; ad gate skipped in app.
  *
- * Note: functions passed to page.evaluate / waitForFunction must be pure JS
- * (no TypeScript-only syntax — Playwright serializes via Function#toString).
+ * page.evaluate / waitForFunction callbacks must be pure JS (no TS syntax).
  */
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
@@ -13,7 +12,7 @@ function sleep(ms: number): Promise<void> {
 }
 
 function isBenignAdNoise(msg: string): boolean {
-  return /adsbygoogle|googlesyndication|pagead2|adservice|googleads|Failed to load resource.*\/pagead/i
+  return /adsbygoogle|googlesyndication|pagead2|adservice|googleads|ERR_BLOCKED|Failed to load resource/i
     .test(msg);
 }
 
@@ -31,6 +30,25 @@ async function waitForServer(url: string, attempts = 100): Promise<void> {
   throw new Error(`server not ready: ${url}`);
 }
 
+/** Prefer Chromium shipped in mcr.microsoft.com/playwright image. */
+function chromiumLaunchOptions(): {
+  headless: boolean;
+  args: string[];
+  executablePath?: string;
+} {
+  const args = [
+    "--no-sandbox",
+    "--disable-dev-shm-usage",
+    "--disable-gpu",
+  ];
+  const fromEnv = Deno.env.get("CHROME_PATH") ||
+    Deno.env.get("PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH");
+  if (fromEnv) {
+    return { headless: true, args, executablePath: fromEnv };
+  }
+  return { headless: true, args };
+}
+
 Deno.test({
   name: "start → hard drop → result",
   sanitizeResources: false,
@@ -39,19 +57,27 @@ Deno.test({
     const PORT = 4173;
     const ORIGIN = `http://127.0.0.1:${PORT}`;
 
+    // python3 is available in Playwright Ubuntu images; avoids flaky npx
     const server = spawn(
-      "npx",
-      ["--yes", "serve", ".", "-l", String(PORT)],
-      { stdio: "ignore", shell: true },
+      "python3",
+      ["-m", "http.server", String(PORT), "--bind", "127.0.0.1"],
+      { stdio: "ignore", cwd: Deno.cwd() },
     );
 
     let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
     try {
       await waitForServer(`${ORIGIN}/index.html`);
-      browser = await chromium.launch({
-        headless: true,
-        args: ["--no-sandbox", "--disable-dev-shm-usage", "--disable-gpu"],
-      });
+
+      try {
+        browser = await chromium.launch(chromiumLaunchOptions());
+      } catch (launchErr) {
+        throw new Error(
+          `chromium.launch failed: ${String(launchErr)}; ` +
+            `CHROME_PATH=${Deno.env.get("CHROME_PATH") ?? ""} ` +
+            `PLAYWRIGHT_BROWSERS_PATH=${Deno.env.get("PLAYWRIGHT_BROWSERS_PATH") ?? ""}`,
+        );
+      }
+
       const page = await browser.newPage();
       const errors: string[] = [];
       page.on("pageerror", (e) => {
@@ -116,7 +142,6 @@ Deno.test({
         throw new Error(`unexpected result score text: ${resultText}`);
       }
 
-      // Pure JS only inside waitForFunction (no TS casts)
       await page.waitForFunction(
         () => {
           const b = document.getElementById("btn-retry");
