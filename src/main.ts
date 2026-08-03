@@ -1,7 +1,8 @@
 import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
-import { nextPreview } from "./renderer/layout.ts";
+import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
+import type { Block } from "./piece.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
@@ -33,6 +34,29 @@ let renderer: Renderer | null = null;
 let detachInput: (() => void) | null = null;
 let tickerFn: (() => void) | null = null;
 let dropAccMs = 0;
+
+/** Same fill as board cells / Next (source: blockHue). */
+function blockFill(block: Block): string {
+  return `hsl(${blockHue(block)} 70% 45%)`;
+}
+
+/** Title rule chips: labels + colors from layout.ts only. */
+function paintRuleExample(): void {
+  const root = document.querySelector("[data-rule-example]");
+  if (!root) return;
+  for (const el of root.querySelectorAll<HTMLElement>("[data-block]")) {
+    const raw = el.getAttribute("data-block");
+    if (!raw) continue;
+    try {
+      const block = JSON.parse(raw) as Block;
+      el.textContent = blockLabel(block);
+      el.style.background = blockFill(block);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
 let adWaitToken = 0;
 
 function isE2e(): boolean {

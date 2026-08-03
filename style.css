@@ -45,8 +45,10 @@ body {
 
 .blurb {
   opacity: 0.85;
-  line-height: 1.5;
-  margin: 0.75rem 0 1.25rem;
+  line-height: 1.45;
+  margin: 0.85rem 0 0.65rem;
+  font-size: clamp(0.85rem, 3.6vw, 1.05rem);
+  letter-spacing: 0.02em;
 }
 
 button {
@@ -252,9 +254,77 @@ button:disabled {
   height: 100% !important;
   min-height: 0 !important;
 }
+.rule-example {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  margin: 0.25rem 0 0.45rem;
+  flex-wrap: nowrap;
+}
 
+.rule-cell {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: #fff;
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  /* background: set by main.ts via blockHue */
+}
 
-#controls-help { margin: 1.25rem auto 0; max-width: 16rem; padding: 1rem 1.1rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); border-radius: 14px; text-align: left; }
-.controls-heading { margin: 0 0 0.65rem; font-size: 0.95rem; font-weight: 700; text-align: center; }
-.controls-list { margin: 0; padding-left: 1.2rem; font-size: 0.85rem; line-height: 1.65; }
-.controls-list kbd { font-size: 0.78rem; padding: 0.05rem 0.35rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); background: rgba(255,255,255,0.08); }
+.rule-arrow {
+  opacity: 0.75;
+  font-size: 1.1rem;
+  margin: 0 0.15rem;
+}
+
+.rule-score {
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: 0.02em;
+  color: #9fe870;
+}
+
+.rule-caption {
+  margin: 0 0 1.25rem;
+  font-size: clamp(0.72rem, 3.2vw, 0.85rem);
+  opacity: 0.75;
+  line-height: 1.4;
+}
+
+#controls-help {
+  margin: 1.25rem auto 0;
+  max-width: 16rem;
+  padding: 1rem 1.1rem;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  text-align: left;
+}
+
+.controls-heading {
+  margin: 0 0 0.65rem;
+  font-size: 0.95rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.controls-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.85rem;
+  line-height: 1.65;
+}
+
+.controls-list kbd {
+  font-size: 0.78rem;
+  padding: 0.05rem 0.35rem;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+}
