@@ -233,7 +233,9 @@ function startPlay(): void {
 
 function captureBoardThumbnail(maxWidth = 160): string | null {
   if (!renderer) return null;
-  const src = renderer.app.view as HTMLCanvasElement;
+  const app = renderer.app;
+  app.renderer.render(app.stage);
+  const src = app.view as HTMLCanvasElement;
   if (!src || src.width < 1) return null;
   const scale = Math.min(1, maxWidth / src.width);
   const w = Math.max(1, Math.round(src.width * scale));
