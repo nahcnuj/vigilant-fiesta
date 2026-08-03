@@ -103,6 +103,7 @@ button:disabled {
 }
 
 #game-container {
+  touch-action: none;
   grid-area: board;
   justify-self: center;
   background: #1a222c;
@@ -341,4 +342,31 @@ button:disabled {
 
 #ad-title {
   margin-top: 1.25rem;
+}
+
+/* Controls: touch first; PC shows both side-by-side in first view */
+.controls-schemes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.controls-scheme-label {
+  margin: 0 0 0.35rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  opacity: 0.75;
+  letter-spacing: 0.04em;
+}
+
+@media (pointer: fine) and (min-width: 480px) {
+  .controls-schemes {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .controls-scheme {
+    flex: 1;
+    min-width: 0;
+  }
 }

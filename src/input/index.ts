@@ -1,11 +1,5 @@
 /**
- * Input package: map any device to {@link GameAction}, then to {@link Game}.
- *
- * ```
- * createKeyboardSource  ─┐
- * (other InputSources)  ─┼→ ActionHandler (createGameController)
- *                       ─┘
- * ```
+ * Input package: map any device to GameAction, then to Game.
  */
 export type { GameAction } from "./action.ts";
 export { ALL_GAME_ACTIONS, GAME_ACTION_LABELS } from "./action.ts";
@@ -22,14 +16,21 @@ export {
   type KeyboardSourceOptions,
 } from "./keyboard.ts";
 
+export {
+  createTouchPadSource,
+  type TouchPadOptions,
+} from "./touch.ts";
+
 import type { Game } from "../game.ts";
 import { createGameController } from "./controller.ts";
 import { createKeyboardSource } from "./keyboard.ts";
+import { createTouchPadSource } from "./touch.ts";
 import { attachSources } from "./source.ts";
 
-/** Wire the default desktop input (keyboard) to a Game. Returns detach. */
+/** Keyboard + board gestures → Game. Returns detach. */
 export function setupInput(game: Game): () => void {
   return attachSources(createGameController(game), [
     createKeyboardSource(),
+    createTouchPadSource(),
   ]);
 }
