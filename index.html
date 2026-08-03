@@ -17,16 +17,15 @@
     </header>
 
     <section id="screen-title" class="screen" data-screen="title">
-      <h1>落ち物パズルゲーム・蘇</h1>
       <p class="blurb">数式を組んで消す、落ち物パズル。</p>
       <div class="rule-example" data-rule-example aria-label="ルール例">
-        <span class="rule-cell" data-block='{"kind":"num","value":7}'></span>
-        <span class="rule-cell" data-block='{"kind":"op","value":"*"}'></span>
-        <span class="rule-cell" data-block='{"kind":"num","value":6}'></span>
+        <span class="rule-cell" data-kind="num" data-value="7">7</span>
+        <span class="rule-cell" data-kind="op" data-value="*">×</span>
+        <span class="rule-cell" data-kind="num" data-value="6">6</span>
         <span class="rule-arrow">→</span>
         <span class="rule-score">+42</span>
       </div>
-      <p class="rule-caption">数字・演算子・数字がそろうと消え、結果がスコアに</p>
+      <p class="rule-caption">縦横に「数・演算・数」がそろうと消えてスコアに</p>
       <button type="button" id="btn-start">スタート</button>
       <section id="controls-help" aria-label="操作方法">
         <h2 class="controls-heading">操作方法</h2>
@@ -36,6 +35,8 @@
           <li><kbd>↑</kbd> ハードドロップ</li>
         </ul>
       </section>
+    </section>
+    </section>
     </section>
       <div class="ad-slot" id="ad-title" aria-label="広告">
         <ins class="adsbygoogle"

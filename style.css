@@ -46,7 +46,7 @@ body {
 .blurb {
   opacity: 0.85;
   line-height: 1.45;
-  margin: 0.85rem 0 0.65rem;
+  margin: 0.5rem 0 0.65rem;
   font-size: clamp(0.85rem, 3.6vw, 1.05rem);
   letter-spacing: 0.02em;
 }
@@ -259,42 +259,41 @@ button:disabled {
   align-items: center;
   justify-content: center;
   gap: 0.35rem;
-  margin: 0.25rem 0 0.45rem;
-  flex-wrap: nowrap;
+  margin: 0.35rem 0 0.5rem;
 }
 
 .rule-cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2rem;
-  height: 2rem;
+  width: 2.1rem;
+  height: 2.1rem;
   border-radius: 6px;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: #fff;
   box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
-  /* background: set by main.ts via blockHue */
+  /* background set by paintRuleExample (blockHue) */
 }
 
 .rule-arrow {
   opacity: 0.75;
   font-size: 1.1rem;
-  margin: 0 0.15rem;
+  margin: 0 0.1rem;
 }
 
 .rule-score {
   font-weight: 700;
   font-size: 1.05rem;
-  letter-spacing: 0.02em;
   color: #9fe870;
 }
 
 .rule-caption {
-  margin: 0 0 1.25rem;
-  font-size: clamp(0.72rem, 3.2vw, 0.85rem);
+  margin: 0 auto 1.25rem;
+  max-width: 18rem;
+  font-size: clamp(0.75rem, 3.2vw, 0.88rem);
   opacity: 0.75;
-  line-height: 1.4;
+  line-height: 1.45;
 }
 
 #controls-help {
