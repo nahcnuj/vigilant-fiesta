@@ -153,15 +153,12 @@ async function runPlaythrough(
   }
 
   await page.waitForSelector("#game-container canvas", { timeout: 5_000 });
-      await assertTitleHasScore(page, false); // title while playing
+      await assertTitleHasScore(page, true); // title on game over
   if (await page.locator("#screen-playing[hidden]").count()) {
     throw new Error("playing screen should stay visible on game over");
   }
 
-  const pageTitle = await page.title();
-      if (!/^Score:\s*\d+\s*\|\s*落ち物パズルゲーム・蘇$/.test(pageTitle)) {
-        throw new Error(`expected score in document.title, got: ${pageTitle}`);
-      }
+  await assertTitleHasScore(page, true); // title on game over
       const resultText = await page.locator("#result-score").innerText();
   if (!/^Score:\s*\d+/.test(resultText)) {
     throw new Error(`unexpected result score text: ${resultText}`);
