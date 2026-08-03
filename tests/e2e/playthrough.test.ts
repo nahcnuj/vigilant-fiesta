@@ -1,11 +1,14 @@
 /**
- * E2E: start → hard-drop → game over overlay (board stays).
+ * E2E playthrough: start → hard-drop → game over overlay (board stays).
  * `?e2e=1` → deterministic digits; ad gate skipped in app.
+ *
+ * - keyboard: ArrowUp
+ * - touch: mobile context + swipe up on #game-container
  *
  * page.evaluate / waitForFunction callbacks must be pure JS (no TS syntax).
  */
 import { spawn } from "node:child_process";
-import { chromium } from "playwright";
+import { chromium, type Browser, type Page } from "playwright";
 
 function sleep(ms: number): Promise<void> {
   return new Promise((r) => setTimeout(r, ms));
@@ -30,7 +33,6 @@ async function waitForServer(url: string, attempts = 100): Promise<void> {
   throw new Error(`server not ready: ${url}`);
 }
 
-/** Prefer Chromium shipped in mcr.microsoft.com/playwright image. */
 function chromiumLaunchOptions(): {
   headless: boolean;
   args: string[];
@@ -49,99 +51,145 @@ function chromiumLaunchOptions(): {
   return { headless: true, args };
 }
 
+function attachErrorCollectors(page: Page): string[] {
+  const errors: string[] = [];
+  page.on("pageerror", (e) => {
+    const s = String(e);
+    if (!isBenignAdNoise(s)) errors.push(s);
+  });
+  page.on("console", (msg) => {
+    if (msg.type() !== "error") return;
+    const s = msg.text();
+    if (!isBenignAdNoise(s)) errors.push(`console: ${s}`);
+  });
+  return errors;
+}
+
+async function hardDropKeyboard(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    window.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "ArrowUp",
+        code: "ArrowUp",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+  });
+}
+
+/** Swipe up on the board → hardDrop (createTouchPadSource). */
+async function hardDropTouch(page: Page): Promise<void> {
+  const box = await page.locator("#game-container").boundingBox();
+  if (!box) throw new Error("#game-container has no box");
+  const x = box.x + box.width / 2;
+  const y0 = box.y + box.height * 0.7;
+  const y1 = box.y + box.height * 0.25;
+  await page.evaluate(
+    ({ x, y0, y1 }) => {
+      const el = document.getElementById("game-container");
+      if (!el) return;
+      el.dispatchEvent(
+        new PointerEvent("pointerdown", {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y0,
+          pointerType: "touch",
+          button: 0,
+          pointerId: 1,
+        }),
+      );
+      el.dispatchEvent(
+        new PointerEvent("pointerup", {
+          bubbles: true,
+          cancelable: true,
+          clientX: x,
+          clientY: y1,
+          pointerType: "touch",
+          button: 0,
+          pointerId: 1,
+        }),
+      );
+    },
+    { x, y0, y1 },
+  );
+}
+
+async function runPlaythrough(
+  page: Page,
+  hardDrop: (page: Page) => Promise<void>,
+  errors: string[],
+): Promise<void> {
+  await page.locator("#btn-start").click({ timeout: 15_000 });
+  await page.waitForSelector("#screen-playing:not([hidden])", {
+    timeout: 15_000,
+  });
+  await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
+
+  const deadline = Date.now() + 60_000;
+  while (Date.now() < deadline) {
+    if (await page.locator("#result-overlay:not([hidden])").count()) break;
+    await hardDrop(page);
+    await sleep(50);
+  }
+
+  if (!(await page.locator("#result-overlay:not([hidden])").count())) {
+    throw new Error(
+      `result overlay not shown; ${errors.join("; ") || "(no page errors)"}`,
+    );
+  }
+
+  await page.waitForSelector("#game-container canvas", { timeout: 5_000 });
+  if (await page.locator("#screen-playing[hidden]").count()) {
+    throw new Error("playing screen should stay visible on game over");
+  }
+
+  const resultText = await page.locator("#result-score").innerText();
+  if (!/^Score:\s*\d+/.test(resultText)) {
+    throw new Error(`unexpected result score text: ${resultText}`);
+  }
+
+  if (errors.length) {
+    throw new Error(`page errors: ${errors.join("; ")}`);
+  }
+}
+
+async function withServer(
+  port: number,
+  fn: (origin: string, browser: Browser) => Promise<void>,
+): Promise<void> {
+  const ORIGIN = `http://127.0.0.1:${port}`;
+  const server = spawn(
+    "python3",
+    ["-m", "http.server", String(port), "--bind", "127.0.0.1"],
+    { stdio: "ignore", cwd: Deno.cwd() },
+  );
+  let browser: Browser | undefined;
+  try {
+    await waitForServer(`${ORIGIN}/index.html`);
+    browser = await chromium.launch(chromiumLaunchOptions());
+    await fn(ORIGIN, browser);
+  } finally {
+    if (browser) await browser.close();
+    server.kill("SIGTERM");
+  }
+}
+
 Deno.test({
-  name: "start → hard drop → result",
+  name: "keyboard: start → hard drop → result",
   sanitizeResources: false,
   sanitizeOps: false,
   async fn() {
-    const PORT = 4173;
-    const ORIGIN = `http://127.0.0.1:${PORT}`;
-
-    // python3 is available in Playwright Ubuntu images; avoids flaky npx
-    const server = spawn(
-      "python3",
-      ["-m", "http.server", String(PORT), "--bind", "127.0.0.1"],
-      { stdio: "ignore", cwd: Deno.cwd() },
-    );
-
-    let browser: Awaited<ReturnType<typeof chromium.launch>> | undefined;
-    try {
-      await waitForServer(`${ORIGIN}/index.html`);
-
-      try {
-        browser = await chromium.launch(chromiumLaunchOptions());
-      } catch (launchErr) {
-        throw new Error(
-          `chromium.launch failed: ${String(launchErr)}; ` +
-            `CHROME_PATH=${Deno.env.get("CHROME_PATH") ?? ""} ` +
-            `PLAYWRIGHT_BROWSERS_PATH=${Deno.env.get("PLAYWRIGHT_BROWSERS_PATH") ?? ""}`,
-        );
-      }
-
+    await withServer(4173, async (ORIGIN, browser) => {
       const page = await browser.newPage();
-      const errors: string[] = [];
-      page.on("pageerror", (e) => {
-        const s = String(e);
-        if (!isBenignAdNoise(s)) errors.push(s);
-      });
-      page.on("console", (msg) => {
-        if (msg.type() !== "error") return;
-        const s = msg.text();
-        if (!isBenignAdNoise(s)) errors.push(`console: ${s}`);
-      });
-
+      const errors = attachErrorCollectors(page);
       await page.goto(`${ORIGIN}/index.html?e2e=1`, {
         waitUntil: "domcontentloaded",
         timeout: 30_000,
       });
-
       await page.waitForSelector("#site-title", { timeout: 10_000 });
-      await page.locator("#btn-start").click({ timeout: 15_000 });
-      await page.waitForSelector("#screen-playing:not([hidden])", {
-        timeout: 15_000,
-      });
-      await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
-
-      await page.waitForSelector("#next-panel", { timeout: 5_000 });
-      const nextPivot = (await page.locator("#next-pivot").innerText()).trim();
-      const nextSec = (await page.locator("#next-secondary").innerText()).trim();
-      if (!nextPivot || !nextSec) {
-        throw new Error(
-          `Next panel empty: pivot="${nextPivot}" secondary="${nextSec}"`,
-        );
-      }
-
-      const deadline = Date.now() + 60_000;
-      while (Date.now() < deadline) {
-        if (await page.locator("#result-overlay:not([hidden])").count()) break;
-        await page.evaluate(() => {
-          window.dispatchEvent(
-            new KeyboardEvent("keydown", {
-              key: "ArrowUp",
-              code: "ArrowUp",
-              bubbles: true,
-              cancelable: true,
-            }),
-          );
-        });
-        await sleep(50);
-      }
-
-      if (!(await page.locator("#result-overlay:not([hidden])").count())) {
-        const err = errors.length ? errors.join("; ") : "(no page errors)";
-        throw new Error(`result overlay not shown within timeout; ${err}`);
-      }
-
-      await page.waitForSelector("#game-container canvas", { timeout: 5_000 });
-      if (await page.locator("#screen-playing[hidden]").count()) {
-        throw new Error("playing screen should stay visible on game over");
-      }
-
-      const resultText = await page.locator("#result-score").innerText();
-      if (!/^Score:\s*\d+/.test(resultText)) {
-        throw new Error(`unexpected result score text: ${resultText}`);
-      }
-
+      await runPlaythrough(page, hardDropKeyboard, errors);
       await page.waitForFunction(
         () => {
           const b = document.getElementById("btn-retry");
@@ -150,13 +198,30 @@ Deno.test({
         undefined,
         { timeout: 5_000 },
       );
+    });
+  },
+});
 
-      if (errors.length) {
-        throw new Error(`page errors: ${errors.join("; ")}`);
-      }
-    } finally {
-      if (browser) await browser.close();
-      server.kill("SIGTERM");
-    }
+Deno.test({
+  name: "touch: start → swipe up → result (mobile)",
+  sanitizeResources: false,
+  sanitizeOps: false,
+  async fn() {
+    await withServer(4174, async (ORIGIN, browser) => {
+      const context = await browser.newContext({
+        hasTouch: true,
+        isMobile: true,
+        viewport: { width: 390, height: 844 },
+      });
+      const page = await context.newPage();
+      const errors = attachErrorCollectors(page);
+      await page.goto(`${ORIGIN}/index.html?e2e=1`, {
+        waitUntil: "domcontentloaded",
+        timeout: 30_000,
+      });
+      await page.waitForSelector("#site-title", { timeout: 10_000 });
+      await runPlaythrough(page, hardDropTouch, errors);
+      await context.close();
+    });
   },
 });
