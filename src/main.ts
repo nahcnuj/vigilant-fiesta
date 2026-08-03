@@ -299,6 +299,7 @@ function endPlay(): void {
     }
   }
   resultScoreEl.textContent = `Score: ${finalScore}`;
+  document.title = `Score: ${finalScore} | ${DEFAULT_PAGE_TITLE}`;
   btnRetry.disabled = true;
   setResultOverlayVisible(true);
 
