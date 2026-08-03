@@ -1,6 +1,9 @@
 /**
  * E2E: start → hard-drop only → game over overlay (board stays).
  * `?e2e=1` → digits-only pairs; ad gate skipped in app.
+ *
+ * Note: functions passed to page.evaluate / waitForFunction must be pure JS
+ * (no TypeScript-only syntax — Playwright serializes via Function#toString).
  */
 import { spawn } from "node:child_process";
 import { chromium } from "playwright";
@@ -103,7 +106,6 @@ Deno.test({
         throw new Error(`result overlay not shown within timeout; ${err}`);
       }
 
-      // Board remains under overlay
       await page.waitForSelector("#game-container canvas", { timeout: 5_000 });
       if (await page.locator("#screen-playing[hidden]").count()) {
         throw new Error("playing screen should stay visible on game over");
@@ -114,11 +116,11 @@ Deno.test({
         throw new Error(`unexpected result score text: ${resultText}`);
       }
 
-      // e2e mode unlocks retry without waiting for real ads
+      // Pure JS only inside waitForFunction (no TS casts)
       await page.waitForFunction(
         () => {
-          const b = document.getElementById("btn-retry") as HTMLButtonElement | null;
-          return !!b && !b.disabled;
+          const b = document.getElementById("btn-retry");
+          return b instanceof HTMLButtonElement && !b.disabled;
         },
         undefined,
         { timeout: 5_000 },
