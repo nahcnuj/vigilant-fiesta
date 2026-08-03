@@ -72,7 +72,7 @@ Deno.test({
 
       const deadline = Date.now() + 60_000;
       while (Date.now() < deadline) {
-        if (await page.locator("#screen-result:not([hidden])").count()) break;
+        if (await page.locator("#result-overlay:not([hidden])").count()) break;
         await page.evaluate(() => {
           window.dispatchEvent(
             new KeyboardEvent("keydown", {
@@ -86,7 +86,7 @@ Deno.test({
         await sleep(50);
       }
 
-      if (!(await page.locator("#screen-result:not([hidden])").count())) {
+      if (!(await page.locator("#result-overlay:not([hidden])").count())) {
         const err = errors.length ? errors.join("; ") : "(no page errors)";
         throw new Error(`result not shown within timeout; ${err}`);
       }
