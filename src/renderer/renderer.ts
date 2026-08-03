@@ -16,6 +16,8 @@ export class Renderer {
       height: this.cellSize * this.height,
       backgroundColor: 0x1a222c,
       antialias: true,
+      // needed for canvas.toDataURL / result thumbnail
+      preserveDrawingBuffer: true,
     });
     this.graphics = new PIXI.Graphics();
     this.labels = new PIXI.Container();

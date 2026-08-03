@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
+  
+  <link rel="preload" href="https://www.googletagmanager.com/gtag/js?id=G-RMH8Q8RB96" as="script">
+<meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>落ち物パズルゲーム・蘇</title>
   <link rel="stylesheet" href="style.css">
@@ -69,5 +71,14 @@
     </section>
   </div>
   <script type="module" src="dist/main.js"></script>
+  <!-- Google tag (gtag.js) — same as nahcnuj.github.io -->
+  <script src="https://www.googletagmanager.com/gtag/js?id=G-RMH8Q8RB96" async></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    const debugMode = typeof location !== 'undefined' && new URLSearchParams(location.search).get('_ga_debug') === '1';
+    gtag('config', 'G-RMH8Q8RB96', debugMode ? { 'debug_mode': true } : {});
+  </script>
 </body>
 </html>
