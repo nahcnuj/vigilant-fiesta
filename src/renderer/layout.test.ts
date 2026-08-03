@@ -20,11 +20,11 @@ Deno.test("狭い方の制約がセル一辺を決める", () => {
   assertEquals(canvasCellSize(8, 10, 320, 200), 20);
 });
 
-Deno.test("数字は値に応じた色相、演算子は固定色相", () => {
-  assertEquals(blockHue(num(0)), 0);
-  assertEquals(blockHue(num(5)), 180);
-  assertEquals(blockHue(op("+")), 200);
-  assertEquals(blockHue(op("*")), 200);
+Deno.test("数字は青系・演算子は赤系（オリジナル2色）", () => {
+  assertEquals(blockHue(num(0)), 230);
+  assertEquals(blockHue(num(5)), 230);
+  assertEquals(blockHue(op("+")), 5);
+  assertEquals(blockHue(op("*")), 5);
 });
 
 Deno.test("blockLabel は数字と全演算子の表示文字", () => {
@@ -41,8 +41,8 @@ Deno.test("paintList は置いてあるセルだけを矩形にする", () => {
     [null, op("*")],
   ];
   assertEquals(paintList(grid, 10), [
-    { x: 0, y: 0, w: 9, h: 9, hue: 36, label: "1" },
-    { x: 10, y: 10, w: 9, h: 9, hue: 200, label: "×" },
+    { x: 0, y: 0, w: 9, h: 9, hue: 230, label: "1" },
+    { x: 10, y: 10, w: 9, h: 9, hue: 5, label: "×" },
   ]);
 });
 
@@ -52,14 +52,14 @@ Deno.test("paintList は落下中セルを含め、y<0 は除く", () => {
       { x: 1, y: 0, block: num(3) },
       { x: 0, y: -1, block: op("+") },
     ]),
-    [{ x: 10, y: 0, w: 9, h: 9, hue: 108, label: "3" }],
+    [{ x: 10, y: 0, w: 9, h: 9, hue: 230, label: "3" }],
   );
 });
 
 Deno.test("nextPreview は次ペア専用（pivot/secondary の表示情報）", () => {
   const pair = new FallingPair(num(2), op("+"));
   assertEquals(nextPreview(pair), {
-    pivot: { label: "2", hue: 72 },
-    secondary: { label: "+", hue: 200 },
+    pivot: { label: "2", hue: 230 },
+    secondary: { label: "+", hue: 5 },
   });
 });

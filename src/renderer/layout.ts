@@ -11,7 +11,8 @@ export function canvasCellSize(
 }
 
 export function blockHue(block: Block): number {
-  return block.kind === "num" ? (block.value * 36) % 360 : 200;
+  // original block.png: numbers blue-violet, operators coral-red
+  return block.kind === "num" ? 230 : 5;
 }
 
 export function blockLabel(block: Block): string {
