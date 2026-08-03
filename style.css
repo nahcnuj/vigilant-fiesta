@@ -327,3 +327,18 @@ button:disabled {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(255, 255, 255, 0.08);
 }
+
+/* Ads only on title / result — never cover the board while playing */
+#screen-playing > .ad-slot,
+#screen-playing .ad-slot:not(#ad-result) {
+  display: none !important;
+}
+
+#screen-title.hidden #ad-title,
+#screen-title[hidden] #ad-title {
+  display: none !important;
+}
+
+#ad-title {
+  margin-top: 1.25rem;
+}
