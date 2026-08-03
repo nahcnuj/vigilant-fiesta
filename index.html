@@ -5,13 +5,26 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>落ち物パズルゲーム・蘇</title>
   <link rel="stylesheet" href="style.css">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1645913691678081"
+       crossorigin="anonymous"></script>
 </head>
 <body>
   <div id="app">
+    <header id="site-header">
+      <h1 id="site-title">落ち物パズルゲーム・蘇</h1>
+    </header>
+
     <section id="screen-title" class="screen" data-screen="title">
-      <h1>落ち物パズルゲーム・蘇</h1>
       <p class="blurb">数字と記号を並べて数式をつくり、スコアを稼ごう。</p>
       <button type="button" id="btn-start">スタート</button>
+      <div class="ad-slot" id="ad-title" aria-label="広告">
+        <ins class="adsbygoogle"
+             style="display:block"
+             data-ad-client="ca-pub-1645913691678081"
+             data-ad-slot="2208436912"
+             data-ad-format="auto"
+             data-full-width-responsive="true"></ins>
+      </div>
     </section>
 
     <section id="screen-playing" class="screen hidden" data-screen="playing" hidden>
@@ -33,12 +46,23 @@
           </div>
         </aside>
       </div>
-    </section>
 
-    <section id="screen-result" class="screen hidden" data-screen="result" hidden>
-      <h2>ゲームオーバー</h2>
-      <p id="result-score">Score: 0</p>
-      <button type="button" id="btn-retry">もう一度</button>
+      <!-- Game over: board stays; this overlay sits on top -->
+      <div id="result-overlay" class="result-overlay hidden" hidden>
+        <div class="result-card">
+          <h2>ゲームオーバー</h2>
+          <p id="result-score">Score: 0</p>
+          <div class="ad-slot" id="ad-result" aria-label="広告">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-1645913691678081"
+                 data-ad-slot="2208436912"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+          </div>
+          <button type="button" id="btn-retry" disabled>もう一度</button>
+        </div>
+      </div>
     </section>
   </div>
   <script type="module" src="dist/main.js"></script>

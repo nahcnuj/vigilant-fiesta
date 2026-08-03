@@ -6,35 +6,45 @@ import { nextPreview } from "./renderer/layout.ts";
 const WIDTH = 8;
 const HEIGHT = 10;
 
-type ScreenId = "title" | "playing" | "result";
+/** AdSense: enable retry after filled/unfilled or fallback timeout. */
+const AD_WAIT_FALLBACK_MS = 4000;
+
+type ScreenId = "title" | "playing";
 
 const screens = {
   title: document.getElementById("screen-title")!,
   playing: document.getElementById("screen-playing")!,
-  result: document.getElementById("screen-result")!,
 };
 
 const scoreEl = document.getElementById("score")!;
 const levelEl = document.getElementById("level")!;
 const resultScoreEl = document.getElementById("result-score")!;
+const resultOverlay = document.getElementById("result-overlay")!;
 const nextPivotEl = document.getElementById("next-pivot")!;
 const nextSecondaryEl = document.getElementById("next-secondary")!;
 const btnStart = document.getElementById("btn-start")!;
-const btnRetry = document.getElementById("btn-retry")!;
+const btnRetry = document.getElementById("btn-retry") as HTMLButtonElement;
+const adTitle = document.getElementById("ad-title");
+const adResult = document.getElementById("ad-result");
 
 let game: Game | null = null;
 let renderer: Renderer | null = null;
 let detachInput: (() => void) | null = null;
 let tickerFn: (() => void) | null = null;
 let dropAccMs = 0;
+let adWaitToken = 0;
+
+function isE2e(): boolean {
+  const params = new URLSearchParams(globalThis.location?.search ?? "");
+  return params.get("e2e") === "1";
+}
 
 function e2eRng(): number {
   return 0.5;
 }
 
 function gameOptionsFromUrl(): GameOptions {
-  const params = new URLSearchParams(globalThis.location?.search ?? "");
-  if (params.get("e2e") === "1") return { rng: e2eRng };
+  if (isE2e()) return { rng: e2eRng };
   return {};
 }
 
@@ -48,6 +58,11 @@ function showScreen(id: ScreenId): void {
     el.hidden = !active;
     el.classList.toggle("hidden", !active);
   }
+}
+
+function setResultOverlayVisible(visible: boolean): void {
+  resultOverlay.hidden = !visible;
+  resultOverlay.classList.toggle("hidden", !visible);
 }
 
 function updateHud(): void {
@@ -72,9 +87,100 @@ function paint(): void {
   updateHud();
 }
 
-function teardownPlay(): void {
-  if (detachInput) { detachInput(); detachInput = null; }
-  if (renderer && tickerFn) { renderer.app.ticker.remove(tickerFn); tickerFn = null; }
+/** Push AdSense for ins elements that have not been requested yet. */
+function requestAdsIn(container: Element | null): void {
+  if (!container || isE2e()) return;
+  const insList = container.querySelectorAll("ins.adsbygoogle");
+  const w = globalThis as unknown as {
+    adsbygoogle?: unknown[];
+  };
+  w.adsbygoogle = w.adsbygoogle || [];
+  for (const ins of insList) {
+    if (ins.getAttribute("data-adsbygoogle-status")) continue;
+    try {
+      w.adsbygoogle.push({});
+    } catch {
+      /* adblock / not ready */
+    }
+  }
+}
+
+/**
+ * Wait until the ad slot is "shown" enough to unlock retry.
+ * - data-ad-status filled | unfilled (AdSense)
+ * - iframe appeared inside the slot
+ * - fallback timeout (adblock / slow network)
+ */
+function waitForAdDisplayed(
+  slot: Element | null,
+  onReady: () => void,
+): void {
+  const token = ++adWaitToken;
+
+  const done = () => {
+    if (token !== adWaitToken) return;
+    onReady();
+  };
+
+  if (isE2e() || !slot) {
+    done();
+    return;
+  }
+
+  const ins = slot.querySelector("ins.adsbygoogle");
+  if (!ins) {
+    done();
+    return;
+  }
+
+  const status = ins.getAttribute("data-ad-status");
+  if (status === "filled" || status === "unfilled") {
+    done();
+    return;
+  }
+
+  if (ins.querySelector("iframe")) {
+    done();
+    return;
+  }
+
+  const observer = new MutationObserver(() => {
+    if (token !== adWaitToken) {
+      observer.disconnect();
+      return;
+    }
+    const st = ins.getAttribute("data-ad-status");
+    if (st === "filled" || st === "unfilled" || ins.querySelector("iframe")) {
+      observer.disconnect();
+      done();
+    }
+  });
+  observer.observe(ins, {
+    attributes: true,
+    attributeFilter: ["data-ad-status"],
+    childList: true,
+    subtree: true,
+  });
+
+  globalThis.setTimeout(() => {
+    observer.disconnect();
+    done();
+  }, AD_WAIT_FALLBACK_MS);
+}
+
+function stopPlayLoop(): void {
+  if (detachInput) {
+    detachInput();
+    detachInput = null;
+  }
+  if (renderer && tickerFn) {
+    renderer.app.ticker.remove(tickerFn);
+    tickerFn = null;
+  }
+  dropAccMs = 0;
+}
+
+function destroyRenderer(): void {
   if (renderer) {
     const view = renderer.app.view as HTMLElement | null;
     view?.parentElement?.removeChild(view);
@@ -82,11 +188,15 @@ function teardownPlay(): void {
     renderer = null;
   }
   game = null;
-  dropAccMs = 0;
 }
 
 function startPlay(): void {
-  teardownPlay();
+  adWaitToken++;
+  btnRetry.disabled = true;
+  setResultOverlayVisible(false);
+  stopPlayLoop();
+  destroyRenderer();
+
   showScreen("playing");
   game = new Game(WIDTH, HEIGHT, gameOptionsFromUrl());
   renderer = new Renderer(WIDTH, HEIGHT);
@@ -94,11 +204,18 @@ function startPlay(): void {
   detachInput = setupInput(game);
   dropAccMs = 0;
   paint();
-  if (game.isGameOver) { endPlay(); return; }
+
+  if (game.isGameOver) {
+    endPlay();
+    return;
+  }
 
   tickerFn = () => {
     if (!game || !renderer) return;
-    if (game.isGameOver) { endPlay(); return; }
+    if (game.isGameOver) {
+      endPlay();
+      return;
+    }
     dropAccMs += renderer.app.ticker.deltaMS;
     const interval = dropIntervalMs(game.level);
     while (dropAccMs >= interval) {
@@ -114,20 +231,30 @@ function startPlay(): void {
 
 function endPlay(): void {
   const finalScore = game?.score ?? 0;
-  if (detachInput) { detachInput(); detachInput = null; }
-  if (renderer && tickerFn) { renderer.app.ticker.remove(tickerFn); tickerFn = null; }
-  if (renderer) {
-    const view = renderer.app.view as HTMLElement | null;
-    view?.parentElement?.removeChild(view);
-    renderer.app.destroy(true);
-    renderer = null;
+  stopPlayLoop();
+  // Keep renderer + final board visible under overlay
+  if (game && renderer) {
+    renderer.render(game.board.getGrid(), []);
+    updateHud();
   }
-  game = null;
-  dropAccMs = 0;
   resultScoreEl.textContent = `Score: ${finalScore}`;
-  showScreen("result");
+  btnRetry.disabled = true;
+  setResultOverlayVisible(true);
+
+  // Fresh push for result ad (new page-like surface)
+  requestAdsIn(adResult);
+  waitForAdDisplayed(adResult, () => {
+    btnRetry.disabled = false;
+  });
 }
 
 btnStart.addEventListener("click", () => startPlay());
-btnRetry.addEventListener("click", () => startPlay());
+btnRetry.addEventListener("click", () => {
+  if (btnRetry.disabled) return;
+  startPlay();
+});
+
 showScreen("title");
+setResultOverlayVisible(false);
+btnRetry.disabled = true;
+requestAdsIn(adTitle);

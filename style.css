@@ -16,22 +16,35 @@ body {
 
 #app {
   width: min(100%, 40rem);
+  position: relative;
+}
+
+#site-header {
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+#site-title {
+  margin: 0;
+  font-size: clamp(1.15rem, 4.5vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .screen {
   text-align: center;
-  padding: 1.5rem;
+  padding: 0.5rem 0 1rem;
 }
 
 .screen.hidden,
 .screen[hidden] {
-  display: none;
+  display: none !important;
 }
 
 .blurb {
   opacity: 0.85;
   line-height: 1.5;
-  margin: 1rem 0 1.5rem;
+  margin: 0.75rem 0 1.25rem;
 }
 
 button {
@@ -47,14 +60,20 @@ button {
   backdrop-filter: blur(12px);
 }
 
-button:hover {
+button:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.2);
 }
 
-/* —— Playing layout: side columns never overlay the board —— */
+button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Playing */
 #screen-playing {
   padding: 0;
   text-align: left;
+  position: relative;
 }
 
 #play-layout {
@@ -66,10 +85,8 @@ button:hover {
   justify-content: center;
 }
 
-#hud-left {
-  grid-area: hud-left;
-  justify-self: stretch;
-}
+#hud-left { grid-area: hud-left; justify-self: stretch; }
+#hud-right { grid-area: hud-right; justify-self: stretch; }
 
 #game-container {
   grid-area: board;
@@ -78,11 +95,6 @@ button:hover {
   border-radius: 8px;
   overflow: hidden;
   line-height: 0;
-}
-
-#hud-right {
-  grid-area: hud-right;
-  justify-self: stretch;
 }
 
 #overlay,
@@ -111,9 +123,7 @@ button:hover {
   margin-bottom: 0;
 }
 
-#next-panel {
-  text-align: center;
-}
+#next-panel { text-align: center; }
 
 .next-title {
   font-size: 0.75rem;
@@ -143,12 +153,57 @@ button:hover {
   background: hsl(200 70% 45%);
 }
 
-#result-score {
-  font-size: 1.25rem;
-  margin: 1rem 0 1.5rem;
+/* Result overlay keeps board visible underneath */
+.result-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 20, 25, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border-radius: 12px;
+  z-index: 10;
+  padding: 1rem;
 }
 
-/* Tablet: slightly tighter side columns */
+.result-overlay.hidden,
+.result-overlay[hidden] {
+  display: none !important;
+}
+
+.result-card {
+  width: min(100%, 22rem);
+  padding: 1.25rem 1.25rem 1.5rem;
+  background: rgba(26, 34, 44, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+}
+
+.result-card h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+#result-score {
+  font-size: 1.25rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.ad-slot {
+  margin: 1rem 0;
+  min-height: 90px;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.ad-slot ins.adsbygoogle {
+  display: block;
+}
+
 @media (max-width: 640px) {
   #play-layout {
     grid-template-columns: minmax(4.75rem, 6rem) minmax(0, auto) minmax(4.75rem, 6rem);
@@ -160,9 +215,7 @@ button:hover {
     padding: 0.55rem 0.6rem;
   }
 
-  #overlay {
-    font-size: 0.8rem;
-  }
+  #overlay { font-size: 0.8rem; }
 
   .next-cell {
     width: 2rem;
@@ -171,10 +224,6 @@ button:hover {
   }
 }
 
-/*
- * Narrow phones: stack HUD above / below the board (still no overlap).
- * Order: score → board → next
- */
 @media (max-width: 480px) {
   body {
     align-items: flex-start;
@@ -218,11 +267,6 @@ button:hover {
     gap: 0.75rem;
   }
 
-  .next-title {
-    margin-bottom: 0;
-  }
-
-  #next-blocks {
-    flex-direction: row;
-  }
+  .next-title { margin-bottom: 0; }
+  #next-blocks { flex-direction: row; }
 }
