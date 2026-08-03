@@ -1,15 +1,18 @@
-/** Digit or arithmetic operator on the field. */
+/** Arithmetic operator on the field. */
 export type Operator = "+" | "-" | "*" | "/";
 
+/** Digits used on the board (original: 1–9 only). */
+export type Digit = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+
 export type Block =
-  | { kind: "num"; value: number }
+  | { kind: "num"; value: Digit }
   | { kind: "op"; value: Operator };
 
 export function num(value: number): Block {
-  if (!Number.isInteger(value) || value < 0 || value > 9) {
-    throw new RangeError(`digit must be 0–9, got ${value}`);
+  if (!Number.isInteger(value) || value < 1 || value > 9) {
+    throw new RangeError(`digit must be 1–9, got ${value}`);
   }
-  return { kind: "num", value };
+  return { kind: "num", value: value as Digit };
 }
 
 export function op(value: Operator): Block {
@@ -17,21 +20,10 @@ export function op(value: Operator): Block {
 }
 
 export function randomBlock(rng: () => number = Math.random): Block {
-  // Rough mix: more digits than operators
-  if (rng() < 0.7) return num(Math.floor(rng() * 10));
+  if (rng() < 0.7) return num(1 + Math.floor(rng() * 9));
   const ops: Operator[] = ["+", "-", "*", "/"];
   return op(ops[Math.floor(rng() * ops.length)]);
 }
-
-/**
- * Falling pair: two blocks that move and rotate together.
- *
- * Orientation (pivot at board position):
- *  0: second is below pivot
- *  1: second is left of pivot
- *  2: second is above pivot
- *  3: second is right of pivot
- */
 export class FallingPair {
   orientation = 0;
 

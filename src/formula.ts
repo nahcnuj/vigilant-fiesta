@@ -1,4 +1,4 @@
-import type { Block, Operator } from "./piece.ts";
+import type { Block, Operator, Digit } from "./piece.ts";
 import type { Board } from "./board.ts";
 
 export interface FormulaMatch {
@@ -6,7 +6,7 @@ export interface FormulaMatch {
   result: number;
 }
 
-function evalOp(a: number, op: Operator, b: number): number {
+function evalOp(a: Digit, op: Operator, b: Digit): number {
   switch (op) {
     case "+":
       return a + b;
@@ -15,14 +15,11 @@ function evalOp(a: number, op: Operator, b: number): number {
     case "*":
       return a * b;
     case "/":
-      if (b === 0) return NaN;
-      // 小数第2位以下切り捨て → keep one decimal toward zero-ish floor of *10
-      const q = a / b;
-      return Math.trunc(q * 10) / 10;
+      return Math.trunc((a / b) * 10) / 10;
   }
 }
 
-function isNum(c: Block | null): c is { kind: "num"; value: number } {
+function isNum(c: Block | null): c is { kind: "num"; value: Digit } {
   return c !== null && c.kind === "num";
 }
 

@@ -21,7 +21,7 @@ Deno.test("狭い方の制約がセル一辺を決める", () => {
 });
 
 Deno.test("数字は青系・演算子は赤系（オリジナル2色）", () => {
-  assertEquals(blockHue(num(0)), 230);
+  assertEquals(blockHue(num(1)), 230);
   assertEquals(blockHue(num(5)), 230);
   assertEquals(blockHue(op("+")), 5);
   assertEquals(blockHue(op("*")), 5);
