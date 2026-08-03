@@ -43,23 +43,26 @@
       <button type="button" id="btn-start">スタート</button>
       <section id="controls-help" aria-label="操作方法">
         <h2 class="controls-heading">操作方法</h2>
-        <div class="controls-schemes">
-          <div class="controls-scheme" data-scheme="touch">
-            <p class="controls-scheme-label">タッチ</p>
-            <ul class="controls-list">
-              <li>左右スワイプ … 左右に移動</li>
-              <li>タップ・下スワイプ … 時計回りに回転</li>
-              <li>上スワイプ … ハードドロップ</li>
-            </ul>
+        <div class="controls-carousel" data-controls-carousel>
+          <div class="controls-track" data-controls-track>
+            <article class="controls-slide" data-scheme="touch">
+              <p class="controls-scheme-label">タッチ</p>
+              <ul class="controls-list">
+                <li>左右スワイプ … 左右に移動</li>
+                <li>タップ・下スワイプ … 時計回りに回転</li>
+                <li>上スワイプ … ハードドロップ</li>
+              </ul>
+            </article>
+            <article class="controls-slide" data-scheme="keys">
+              <p class="controls-scheme-label">十字キー</p>
+              <ul class="controls-list">
+                <li><kbd>←</kbd> <kbd>→</kbd> … 左右に移動</li>
+                <li><kbd>↓</kbd> … 時計回りに回転</li>
+                <li><kbd>↑</kbd> … ハードドロップ</li>
+              </ul>
+            </article>
           </div>
-          <div class="controls-scheme" data-scheme="keys">
-            <p class="controls-scheme-label">十字キー</p>
-            <ul class="controls-list">
-              <li><kbd>←</kbd> <kbd>→</kbd> … 左右に移動</li>
-              <li><kbd>↓</kbd> … 時計回りに回転</li>
-              <li><kbd>↑</kbd> … ハードドロップ</li>
-            </ul>
-          </div>
+          <div class="controls-dots" data-controls-dots hidden></div>
         </div>
       </section>
       <div class="ad-slot" id="ad-title" aria-label="広告">
