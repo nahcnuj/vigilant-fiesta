@@ -19,6 +19,7 @@ const screens = {
 const scoreEl = document.getElementById("score")!;
 const levelEl = document.getElementById("level")!;
 const resultScoreEl = document.getElementById("result-score")!;
+const resultBoardImg = document.getElementById("result-board") as HTMLImageElement | null;
 const resultOverlay = document.getElementById("result-overlay")!;
 const nextPivotEl = document.getElementById("next-pivot")!;
 const nextSecondaryEl = document.getElementById("next-secondary")!;
@@ -229,6 +230,27 @@ function startPlay(): void {
   renderer.app.ticker.add(tickerFn);
 }
 
+
+function captureBoardThumbnail(maxWidth = 160): string | null {
+  if (!renderer) return null;
+  const src = renderer.app.view as HTMLCanvasElement;
+  if (!src || src.width < 1) return null;
+  const scale = Math.min(1, maxWidth / src.width);
+  const w = Math.max(1, Math.round(src.width * scale));
+  const h = Math.max(1, Math.round(src.height * scale));
+  const tmp = document.createElement("canvas");
+  tmp.width = w;
+  tmp.height = h;
+  const ctx = tmp.getContext("2d");
+  if (!ctx) return null;
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(src, 0, 0, w, h);
+  try {
+    return tmp.toDataURL("image/png");
+  } catch {
+    return null;
+  }
+}
 function endPlay(): void {
   const finalScore = game?.score ?? 0;
   stopPlayLoop();
@@ -236,6 +258,16 @@ function endPlay(): void {
   if (game && renderer) {
     renderer.render(game.board.getGrid(), []);
     updateHud();
+  }
+  const thumb = captureBoardThumbnail(160);
+  if (resultBoardImg) {
+    if (thumb) {
+      resultBoardImg.src = thumb;
+      resultBoardImg.hidden = false;
+    } else {
+      resultBoardImg.removeAttribute("src");
+      resultBoardImg.hidden = true;
+    }
   }
   resultScoreEl.textContent = `Score: ${finalScore}`;
   btnRetry.disabled = true;

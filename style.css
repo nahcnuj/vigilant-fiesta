@@ -188,9 +188,31 @@ button:disabled {
   font-size: 1.25rem;
 }
 
+.result-summary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin: 0.75rem 0 1rem;
+}
+
+.result-board {
+  display: block;
+  width: 7.5rem;
+  height: auto;
+  border-radius: 8px;
+  background: #1a222c;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+}
+
 #result-score {
-  font-size: 1.25rem;
-  margin: 0.5rem 0 1rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: left;
 }
 
 .ad-slot {
