@@ -87,6 +87,7 @@ jobs:
           mkdir -p _site/dist
           cp index.html style.css _site/
           cp dist/main.js _site/dist/
+          if [ -d public ]; then cp -a public/. _site/; fi
       - uses: actions/upload-artifact@v4
         with:
           name: site
