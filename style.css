@@ -197,6 +197,7 @@ button:disabled {
 }
 
 .result-card {
+  overflow-x: hidden;
   width: min(100%, 22rem);
   padding: 1.25rem 1.25rem 1.5rem;
   background: rgba(26, 34, 44, 0.95);
