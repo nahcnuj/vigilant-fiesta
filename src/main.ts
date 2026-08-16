@@ -216,8 +216,17 @@ function destroyRenderer(): void {
   game = null;
 }
 
+
+function sendPlayEvent(): void {
+  if (isE2e()) return;
+  const w = globalThis as unknown as {
+    gtag?: (...args: unknown[]) => void;
+  };
+  w.gtag?.("event", "play");
+}
 function startPlay(): void {
-  
+  sendPlayEvent();
+
   document.title = DEFAULT_PAGE_TITLE;
   adWaitToken++;
   btnRetry.disabled = true;
