@@ -88,3 +88,40 @@ export function findFormulas(board: Board): FormulaMatch[] {
 export function totalFormulaScore(matches: FormulaMatch[]): number {
   return matches.reduce((s, m) => s + m.result, 0);
 }
+
+/** Returns true if the block at (x, y) can never be cleared by the rules.
+ *  Only bottom-row blocks that cannot form any horizontal num-op-num are considered permanently unerasable.
+ */
+export function isPermanentlyUnclearable(
+  board: Board,
+  x: number,
+  y: number,
+): boolean {
+  if (y !== board.height - 1) return false;
+
+  const grid = board.getGrid();
+  if (grid[y][x] === null) return false;
+
+  const windows = [
+    [x - 2, x - 1, x],
+    [x - 1, x, x + 1],
+    [x, x + 1, x + 2],
+  ];
+
+  for (const [a, b, c] of windows) {
+    if (a < 0 || c >= board.width) continue;
+
+    const ca = grid[y][a];
+    const cb = grid[y][b];
+    const cc = grid[y][c];
+
+    if (
+      ca?.kind === "num" &&
+      cb?.kind === "op" &&
+      cc?.kind === "num"
+    ) {
+      return false;
+    }
+  }
+  return true;
+}

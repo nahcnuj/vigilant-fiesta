@@ -1,4 +1,4 @@
-import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+﻿import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import {
   blockHue,
   blockLabel,
@@ -41,8 +41,8 @@ Deno.test("paintList は置いてあるセルだけを矩形にする", () => {
     [null, op("*")],
   ];
   assertEquals(paintList(grid, 10), [
-    { x: 0, y: 0, w: 9, h: 9, hue: 230, label: "1" },
-    { x: 10, y: 10, w: 9, h: 9, hue: 5, label: "×" },
+    { x: 0, y: 0, w: 9, h: 9, hue: 230, label: "1", dead: false },
+    { x: 10, y: 10, w: 9, h: 9, hue: 5, label: "×", dead: false },
   ]);
 });
 
@@ -52,7 +52,7 @@ Deno.test("paintList は落下中セルを含め、y<0 は除く", () => {
       { x: 1, y: 0, block: num(3) },
       { x: 0, y: -1, block: op("+") },
     ]),
-    [{ x: 10, y: 0, w: 9, h: 9, hue: 230, label: "3" }],
+    [{ x: 10, y: 0, w: 9, h: 9, hue: 230, label: "3", dead: false }],
   );
 });
 

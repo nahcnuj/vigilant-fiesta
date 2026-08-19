@@ -1,5 +1,7 @@
-import type { Cell } from "../board.ts";
+﻿import type { Cell } from "../board.ts";
 import type { Block } from "../piece.ts";
+import type { Board } from "../board.ts";
+import { isPermanentlyUnclearable } from "../formula.ts";
 
 export function canvasCellSize(
   cols: number,
@@ -26,13 +28,16 @@ export function blockLabel(block: Block): string {
 }
 
 export type PaintCell = {
-  x: number; y: number; w: number; h: number; hue: number; label: string;
+  x: number; y: number; w: number; h: number;
+  hue: number; label: string;
+  dead: boolean;
 };
 
 export function paintList(
   grid: Cell[][],
   cellSize: number,
   active: { x: number; y: number; block: Block }[] = [],
+  board?: Board,
 ): PaintCell[] {
   const out: PaintCell[] = [];
   for (let y = 0; y < grid.length; y++) {
@@ -43,6 +48,7 @@ export function paintList(
         x: x * cellSize, y: y * cellSize,
         w: cellSize - 1, h: cellSize - 1,
         hue: blockHue(cell), label: blockLabel(cell),
+        dead: board ? isPermanentlyUnclearable(board, x, y) : false,
       });
     }
   }
@@ -52,6 +58,7 @@ export function paintList(
       x: a.x * cellSize, y: a.y * cellSize,
       w: cellSize - 1, h: cellSize - 1,
       hue: blockHue(a.block), label: blockLabel(a.block),
+      dead: false,
     });
   }
   return out;
