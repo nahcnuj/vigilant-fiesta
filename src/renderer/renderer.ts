@@ -1,9 +1,9 @@
-import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
+﻿import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
 import type { Cell } from "../board.ts";
 import type { Block } from "../piece.ts";
 import { canvasCellSize, paintList } from "./layout.ts";
 
-/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line → risk of game over. */
+/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line 竊・risk of game over. */
 const SPAWN_ROWS = 2;
 const DANGER_LINE_ROW = 1;
 
@@ -74,19 +74,25 @@ export class Renderer {
     else console.warn(`Renderer: element #${elementId} not found`);
   }
 
-  render(grid: Cell[][], active: { x: number; y: number; block: Block }[] = []) {
+  render(
+    grid: Cell[][],
+    active: { x: number; y: number; block: Block }[] = [],
+    board?: import("../board.ts").Board,
+  ) {
     this.graphics.clear();
     this.labels.removeChildren();
     const fontSize = Math.max(12, Math.floor(this.cellSize * 0.45));
-    for (const r of paintList(grid, this.cellSize, active)) {
-      this.graphics.beginFill(new PIXI.Color({ h: r.hue, s: 70, l: 45 }));
+    for (const r of paintList(grid, this.cellSize, active, board)) {
+      // Permanently unerasable blocks are drawn darker
+      const lightness = r.dead ? 28 : 45;
+      this.graphics.beginFill(new PIXI.Color({ h: r.hue, s: 70, l: lightness }));
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
       const text = new PIXI.Text(r.label, {
         fontFamily: "system-ui, sans-serif",
         fontSize,
         fontWeight: "700",
-        fill: 0xffffff,
+        fill: r.dead ? 0xbbbbbb : 0xffffff,
         align: "center",
       });
       text.anchor.set(0.5);
@@ -96,3 +102,4 @@ export class Renderer {
     }
   }
 }
+

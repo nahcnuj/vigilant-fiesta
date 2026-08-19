@@ -1,7 +1,7 @@
-import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+﻿import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { Board } from "./board.ts";
 import { num, op } from "./piece.ts";
-import { findFormulas, totalFormulaScore } from "./formula.ts";
+import { findFormulas, totalFormulaScore, isPermanentlyUnclearable } from "./formula.ts";
 
 Deno.test("横方向の 数字 演算子 数字 を検出して評価する", () => {
   const board = new Board(5, 3);
@@ -59,7 +59,6 @@ Deno.test("掛け算と割り算を評価する", () => {
   assertEquals(div?.result, 2.5);
 });
 
-
 Deno.test("縦方向の数式を検出する", () => {
   const board = new Board(3, 5);
   board.placeBlocks([
@@ -75,4 +74,40 @@ Deno.test("縦方向の数式を検出する", () => {
     { x: 1, y: 1 },
     { x: 1, y: 2 },
   ]);
+});
+
+Deno.test("bottom-row adjacent operators are permanently unerasable", () => {
+  const board = new Board(8, 10);
+
+  board.placeBlocks([
+    { x: 3, y: 9, block: op("+") },
+    { x: 4, y: 9, block: op("-") },
+  ]);
+
+  assertEquals(isPermanentlyUnclearable(board, 3, 9), true);
+  assertEquals(isPermanentlyUnclearable(board, 4, 9), true);
+});
+
+Deno.test("bottom-row N O N is erasable", () => {
+  const board = new Board(8, 10);
+
+  board.placeBlocks([
+    { x: 2, y: 9, block: num(1) },
+    { x: 3, y: 9, block: op("+") },
+    { x: 4, y: 9, block: num(5) },
+  ]);
+
+  assertEquals(isPermanentlyUnclearable(board, 3, 9), false);
+});
+
+Deno.test("non-bottom row is never marked permanently unerasable", () => {
+  const board = new Board(8, 10);
+
+  board.placeBlocks([
+    { x: 3, y: 8, block: op("*") },
+    { x: 4, y: 8, block: op("/") },
+  ]);
+
+  assertEquals(isPermanentlyUnclearable(board, 3, 8), false);
+  assertEquals(isPermanentlyUnclearable(board, 4, 8), false);
 });
