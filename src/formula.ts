@@ -1,4 +1,4 @@
-import type { Block, Operator, Digit } from "./piece.ts";
+﻿import type { Block, Operator, Digit } from "./piece.ts";
 import type { Board } from "./board.ts";
 
 export interface FormulaMatch {
@@ -8,14 +8,10 @@ export interface FormulaMatch {
 
 function evalOp(a: Digit, op: Operator, b: Digit): number {
   switch (op) {
-    case "+":
-      return a + b;
-    case "-":
-      return a - b;
-    case "*":
-      return a * b;
-    case "/":
-      return Math.trunc((a / b) * 10) / 10;
+    case "+": return a + b;
+    case "-": return a - b;
+    case "*": return a * b;
+    case "/": return Math.trunc((a / b) * 10) / 10;
   }
 }
 
@@ -27,10 +23,6 @@ function isOp(c: Block | null): c is { kind: "op"; value: Operator } {
   return c !== null && c.kind === "op";
 }
 
-/**
- * Find all num–op–num triples scanning right and down (requirements 3.4).
- * Overlapping triples each count (e.g. 1+2*3 → 1+2 and 2*3).
- */
 export function findFormulas(board: Board): FormulaMatch[] {
   const matches: FormulaMatch[] = [];
   const grid = board.getGrid();
@@ -47,11 +39,7 @@ export function findFormulas(board: Board): FormulaMatch[] {
         const result = evalOp(a.value, o.value, b.value);
         if (!Number.isNaN(result)) {
           matches.push({
-            cells: [
-              { x, y },
-              { x: x + 1, y },
-              { x: x + 2, y },
-            ],
+            cells: [{ x, y }, { x: x + 1, y }, { x: x + 2, y }],
             result,
           });
         }
@@ -69,11 +57,7 @@ export function findFormulas(board: Board): FormulaMatch[] {
         const result = evalOp(a.value, o.value, b.value);
         if (!Number.isNaN(result)) {
           matches.push({
-            cells: [
-              { x, y },
-              { x, y: y + 1 },
-              { x, y: y + 2 },
-            ],
+            cells: [{ x, y }, { x, y: y + 1 }, { x, y: y + 2 }],
             result,
           });
         }
@@ -84,13 +68,13 @@ export function findFormulas(board: Board): FormulaMatch[] {
   return matches;
 }
 
-/** Sum of formula results (negative subtraction reduces score). */
 export function totalFormulaScore(matches: FormulaMatch[]): number {
   return matches.reduce((s, m) => s + m.result, 0);
 }
 
-/** Returns true if the block at (x, y) can never be cleared by the rules.
- *  Only bottom-row blocks that cannot form any horizontal num-op-num are considered permanently unerasable.
+/**
+ * 本当に「どうやっても」消せないブロックか？
+ * 一番下の行の演算子で、左右がすでに演算子（または端）になっている場合のみ true
  */
 export function isPermanentlyUnclearable(
   board: Board,
@@ -100,28 +84,17 @@ export function isPermanentlyUnclearable(
   if (y !== board.height - 1) return false;
 
   const grid = board.getGrid();
-  if (grid[y][x] === null) return false;
+  const cell = grid[y][x];
+  if (cell === null || cell.kind !== "op") return false;
 
-  const windows = [
-    [x - 2, x - 1, x],
-    [x - 1, x, x + 1],
-    [x, x + 1, x + 2],
-  ];
+  // 左右のセルを確認
+  const left = x > 0 ? grid[y][x - 1] : null;
+  const right = x < board.width - 1 ? grid[y][x + 1] : null;
 
-  for (const [a, b, c] of windows) {
-    if (a < 0 || c >= board.width) continue;
+  // 左右のどちらかが「数字になれる空き」なら、将来消せる可能性がある
+  const leftCanBeNum = left === null;   // 空きがあれば数字が落ちてくる可能性あり
+  const rightCanBeNum = right === null;
 
-    const ca = grid[y][a];
-    const cb = grid[y][b];
-    const cc = grid[y][c];
-
-    if (
-      ca?.kind === "num" &&
-      cb?.kind === "op" &&
-      cc?.kind === "num"
-    ) {
-      return false;
-    }
-  }
-  return true;
+  // 左右両方とも「すでに何か置かれていて数字になれない」場合のみ永久に消せない
+  return !leftCanBeNum && !rightCanBeNum;
 }
