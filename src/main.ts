@@ -1,4 +1,4 @@
-import { Game, type GameOptions } from "./game.ts";
+﻿import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
 import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
@@ -7,7 +7,7 @@ import type { Block } from "./piece.ts";
 const WIDTH = 8;
 const HEIGHT = 10;
 
-const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
+const DEFAULT_PAGE_TITLE = "關ｽ縺｡迚ｩ繝代ぜ繝ｫ繧ｲ繝ｼ繝繝ｻ陂・;
 
 
 /** AdSense: enable retry after filled/unfilled or fallback timeout. */
@@ -109,7 +109,7 @@ function activeCells() {
 
 function paint(): void {
   if (!game || !renderer) return;
-  renderer.render(game.board.getGrid(), activeCells());
+  renderer.render(game.board.getGrid(), activeCells(), game.board);
   updateHud();
 }
 
@@ -294,7 +294,7 @@ function endPlay(): void {
   stopPlayLoop();
   // Keep renderer + final board visible under overlay
   if (game && renderer) {
-    renderer.render(game.board.getGrid(), []);
+    renderer.render(game.board.getGrid(), [], game.board);
     updateHud();
   }
   const thumb = captureBoardThumbnail(160);
@@ -358,7 +358,7 @@ function initControlsCarousel(): void {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "controls-dot";
-        b.setAttribute("aria-label", `操作体系 ${i + 1}`);
+        b.setAttribute("aria-label", `謫堺ｽ應ｽ鍋ｳｻ ${i + 1}`);
         b.addEventListener("click", () => {
           (slides[i] as HTMLElement).scrollIntoView({
             behavior: "smooth",
@@ -385,3 +385,4 @@ initControlsCarousel();
 setResultOverlayVisible(false);
 btnRetry.disabled = true;
 requestAdsIn(adTitle);
+
