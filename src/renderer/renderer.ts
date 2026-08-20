@@ -84,8 +84,9 @@ export class Renderer {
     const fontSize = Math.max(12, Math.floor(this.cellSize * 0.45));
     for (const r of paintList(grid, this.cellSize, active, board)) {
       // Permanently unerasable blocks are drawn darker
-      const lightness = r.dead ? 18 : 45;
-      this.graphics.beginFill(new PIXI.Color({ h: r.hue, s: 70, l: lightness }));
+      const lightness = r.dead ? 22 : 45;
+      const saturation = r.dead ? 35 : 70;
+      this.graphics.beginFill(new PIXI.Color({ h: r.hue, s: saturation, l: lightness }));
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
       const text = new PIXI.Text(r.label, {
@@ -102,5 +103,6 @@ export class Renderer {
     }
   }
 }
+
 
 
