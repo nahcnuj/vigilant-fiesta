@@ -11,26 +11,108 @@ export type SeId =
 
 const MUTE_KEY = "vf-audio-muted";
 
+/** Minimal Web Audio surface used by AudioManager (for tests). */
+export interface AudioContextLike {
+  state: string;
+  currentTime: number;
+  sampleRate: number;
+  destination: AudioNodeLike;
+  resume(): Promise<void>;
+  createOscillator(): OscillatorLike;
+  createGain(): GainLike;
+  createBuffer(channels: number, length: number, sampleRate: number): BufferLike;
+  createBufferSource(): BufferSourceLike;
+}
+
+export interface AudioNodeLike {
+  connect(dest: AudioNodeLike): void;
+}
+
+export interface GainLike extends AudioNodeLike {
+  gain: {
+    value: number;
+    setValueAtTime(value: number, when: number): void;
+    exponentialRampToValueAtTime(value: number, when: number): void;
+  };
+}
+
+export interface OscillatorLike extends AudioNodeLike {
+  type: string;
+  frequency: { value: number };
+  start(when?: number): void;
+  stop(when?: number): void;
+}
+
+export interface BufferLike {
+  getChannelData(channel: number): Float32Array;
+}
+
+export interface BufferSourceLike extends AudioNodeLike {
+  buffer: BufferLike | null;
+  start(when?: number): void;
+}
+
+export interface StorageLike {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
 function isE2e(): boolean {
+  const loc = globalThis.location;
+  const search =
+    typeof loc === "object" && loc !== null
+      ? String((loc as { search?: string }).search ?? "")
+      : "";
+  return new URLSearchParams(search).get("e2e") === "1";
+}
+
+function defaultCreateContext(): AudioContextLike | null {
+  const g = globalThis as unknown as {
+    AudioContext?: new () => AudioContextLike;
+    webkitAudioContext?: new () => AudioContextLike;
+  };
+  const AC = g.AudioContext ?? g.webkitAudioContext;
+  if (!AC) return null;
+  return new AC();
+}
+
+function defaultStorage(): StorageLike | null {
   try {
-    return new URLSearchParams(globalThis.location?.search ?? "").get("e2e") === "1";
+    const s = (globalThis as unknown as { localStorage?: StorageLike }).localStorage;
+    if (!s || typeof s.getItem !== "function") return null;
+    return s;
   } catch {
-    return false;
+    return null;
   }
 }
 
+export type AudioManagerOptions = {
+  disabled?: boolean;
+  /** Inject for tests. */
+  createContext?: () => AudioContextLike | null;
+  storage?: StorageLike | null;
+};
+
 export class AudioManager {
-  private ctx: AudioContext | null = null;
+  private ctx: AudioContextLike | null = null;
   private muted = false;
-  private bgmGain: GainNode | null = null;
+  private bgmGain: GainLike | null = null;
   private bgmTimer: number | null = null;
   private unlocked = false;
   private readonly disabled: boolean;
+  private readonly createContext: () => AudioContextLike | null;
+  private readonly storage: StorageLike | null;
 
-  constructor(opts?: { disabled?: boolean }) {
-    this.disabled = opts?.disabled ?? isE2e();
-    if (typeof localStorage !== "undefined") {
-      this.muted = localStorage.getItem(MUTE_KEY) === "1";
+  constructor(opts: AudioManagerOptions = {}) {
+    this.disabled = opts.disabled ?? isE2e();
+    this.createContext = opts.createContext ?? defaultCreateContext;
+    this.storage = opts.storage === undefined ? defaultStorage() : opts.storage;
+    if (this.storage) {
+      try {
+        this.muted = this.storage.getItem(MUTE_KEY) === "1";
+      } catch {
+        this.muted = false;
+      }
     }
   }
 
@@ -40,10 +122,12 @@ export class AudioManager {
 
   setMuted(m: boolean): void {
     this.muted = m;
-    try {
-      localStorage.setItem(MUTE_KEY, m ? "1" : "0");
-    } catch {
-      /* ignore */
+    if (this.storage) {
+      try {
+        this.storage.setItem(MUTE_KEY, m ? "1" : "0");
+      } catch {
+        /* ignore */
+      }
     }
     if (m) this.stopBgm();
     else if (this.unlocked) this.startBgm();
@@ -136,26 +220,21 @@ export class AudioManager {
     this.bgmGain = null;
   }
 
-  private ensureCtx(): AudioContext | null {
+  private ensureCtx(): AudioContextLike | null {
     if (this.disabled) return null;
     if (!this.ctx) {
-      const AC =
-        globalThis.AudioContext ||
-        (globalThis as unknown as { webkitAudioContext?: typeof AudioContext })
-          .webkitAudioContext;
-      if (!AC) return null;
-      this.ctx = new AC();
+      this.ctx = this.createContext();
     }
     return this.ctx;
   }
 
   private beep(
-    ctx: AudioContext,
+    ctx: AudioContextLike,
     freq: number,
     duration: number,
     peak: number,
     when: number,
-    dest: AudioNode = ctx.destination,
+    dest: AudioNodeLike = ctx.destination,
   ): void {
     const osc = ctx.createOscillator();
     const g = ctx.createGain();
@@ -171,7 +250,7 @@ export class AudioManager {
   }
 
   private noiseBurst(
-    ctx: AudioContext,
+    ctx: AudioContextLike,
     duration: number,
     peak: number,
     when: number,
