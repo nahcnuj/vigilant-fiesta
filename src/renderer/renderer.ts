@@ -84,7 +84,7 @@ export class Renderer {
     const fontSize = Math.max(12, Math.floor(this.cellSize * 0.45));
     for (const r of paintList(grid, this.cellSize, active, board)) {
       // Permanently unerasable blocks are drawn darker
-      const lightness = r.dead ? 28 : 45;
+      const lightness = r.dead ? 18 : 45;
       this.graphics.beginFill(new PIXI.Color({ h: r.hue, s: 70, l: lightness }));
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
@@ -92,7 +92,7 @@ export class Renderer {
         fontFamily: "system-ui, sans-serif",
         fontSize,
         fontWeight: "700",
-        fill: r.dead ? 0xbbbbbb : 0xffffff,
+        fill: r.dead ? 0x888888 : 0xffffff,
         align: "center",
       });
       text.anchor.set(0.5);
@@ -102,4 +102,5 @@ export class Renderer {
     }
   }
 }
+
 
