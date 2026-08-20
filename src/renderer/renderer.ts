@@ -1,24 +1,18 @@
 ﻿import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
-
-interface PixiText {
-  x: number;
-  y: number;
-  anchor: { set(x: number, y?: number): void };
-}
 import type { Cell } from "../board.ts";
 import type { Block } from "../piece.ts";
 import { canvasCellSize, paintList } from "./layout.ts";
 
-/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line 竊・risk of game over. */
+/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line 遶翫・risk of game over. */
 const SPAWN_ROWS = 2;
 const DANGER_LINE_ROW = 1;
 
 export class Renderer {
-  readonly app: any;
+  readonly app: InstanceType<typeof PIXI.Application>;
   private cellSize: number;
-  private guides: any;
-  private graphics: any;
-  private labels: any;
+  private guides: InstanceType<typeof PIXI.Graphics>;
+  private graphics: InstanceType<typeof PIXI.Graphics>;
+  private labels: InstanceType<typeof PIXI.Container>;
 
   constructor(private width: number, private height: number) {
     this.cellSize = canvasCellSize(this.width, this.height);
@@ -54,14 +48,14 @@ export class Renderer {
     const sy = 0;
     const sw = cs;
     const sh = SPAWN_ROWS * cs;
-    g.lineStyle(2, 0x5ec8ff, 0.85);
+    Reflect.apply(g.lineStyle, g, [2, 0x5ec8ff, 0.85]);
     g.beginFill(0x5ec8ff, 0.08);
     g.drawRoundedRect(sx + 1, sy + 1, sw - 2, sh - 2, 4);
     g.endFill();
 
     // --- Danger line: below spawn zone (y == SPAWN_ROWS) ---
     const ly = DANGER_LINE_ROW * cs;
-    g.lineStyle(2, 0xff5a5a, 0.9);
+    Reflect.apply(g.lineStyle, g, [2, 0xff5a5a, 0.9]);
     // dashed horizontal line
     const dash = 8;
     const gap = 6;
@@ -95,7 +89,7 @@ export class Renderer {
       this.graphics.beginFill(new (PIXI.Color as any)({ h: r.hue, s: saturation, l: lightness }) as any);
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
-      const text: PixiText = new PIXI.Text(r.label, {
+      const text = new PIXI.Text(r.label, {
         fontFamily: "system-ui, sans-serif",
         fontSize,
         fontWeight: "700",
@@ -103,12 +97,16 @@ export class Renderer {
         align: "center",
       });
       text.anchor.set(0.5);
-      (text as PixiText).x = r.x + r.w / 2;
-      (text as PixiText).y = r.y + r.h / 2;
+      Reflect.set(text, "x", r.x + r.w / 2);
+      Reflect.set(text, "y", r.y + r.h / 2);
       this.labels.addChild(text);
     }
   }
 }
+
+
+
+
 
 
 

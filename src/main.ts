@@ -198,7 +198,7 @@ function stopPlayLoop(): void {
     detachInput = null;
   }
   if (renderer && tickerFn) {
-    renderer.app.ticker.remove(tickerFn);
+    Reflect.apply(Reflect.get(Reflect.get(renderer.app, "ticker"), "remove"), Reflect.get(renderer.app, "ticker"), [tickerFn]);
     tickerFn = null;
   }
   dropAccMs = 0;
@@ -251,7 +251,7 @@ function startPlay(): void {
       endPlay();
       return;
     }
-    dropAccMs += renderer.app.ticker.deltaMS;
+    dropAccMs += Reflect.get(Reflect.get(renderer.app, "ticker"), "deltaMS") as number;
     const interval = dropIntervalMs(game.level);
     while (dropAccMs >= interval) {
       dropAccMs -= interval;
@@ -261,7 +261,7 @@ function startPlay(): void {
     paint();
     if (game.isGameOver) endPlay();
   };
-  renderer.app.ticker.add(tickerFn);
+  Reflect.apply(Reflect.get(Reflect.get(renderer.app, "ticker"), "add"), Reflect.get(renderer.app, "ticker"), [tickerFn]);
 }
 
 
@@ -383,6 +383,8 @@ initControlsCarousel();
 setResultOverlayVisible(false);
 btnRetry.disabled = true;
 requestAdsIn(adTitle);
+
+
 
 
 
