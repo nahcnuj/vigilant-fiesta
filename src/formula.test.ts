@@ -112,7 +112,7 @@ Deno.test("non-bottom row is never marked permanently unerasable", () => {
   assertEquals(isPermanentlyUnclearable(board, 4, 8), false);
 });
 
-Deno.test("bottom-row 1 + ÷ 4 → all four blocks are permanently unerasable", () => {
+Deno.test("bottom-row 1 + ÷ 4 → the two operators are permanently unerasable", () => {
   const board = new Board(8, 10);
 
   board.placeBlocks([
@@ -122,9 +122,12 @@ Deno.test("bottom-row 1 + ÷ 4 → all four blocks are permanently unerasable", 
     { x: 5, y: 9, block: num(4) },
   ]);
 
-  // 一番下で横並びが固定されているため、4つ全部消えない
-  assertEquals(isPermanentlyUnclearable(board, 2, 9), true); // 1
-  assertEquals(isPermanentlyUnclearable(board, 3, 9), true); // +
-  assertEquals(isPermanentlyUnclearable(board, 4, 9), true); // ÷
-  assertEquals(isPermanentlyUnclearable(board, 5, 9), true); // 4
+  // 左右の数字は消せる可能性あり
+  assertEquals(isPermanentlyUnclearable(board, 2, 9), false); // 1
+  assertEquals(isPermanentlyUnclearable(board, 5, 9), false); // 4
+
+  // 隣り合った演算子は永久に消せない
+  assertEquals(isPermanentlyUnclearable(board, 3, 9), true);  // +
+  assertEquals(isPermanentlyUnclearable(board, 4, 9), true);  // ÷
 });
+
