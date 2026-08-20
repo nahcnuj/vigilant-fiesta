@@ -1,4 +1,4 @@
-﻿import * as PIXI from "https://esm.sh/pixi.js@7.4.0";
+﻿import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
 
 interface PixiText {
   x: number;
@@ -109,6 +109,7 @@ export class Renderer {
     }
   }
 }
+
 
 
 
