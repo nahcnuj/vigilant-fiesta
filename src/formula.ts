@@ -74,7 +74,8 @@ export function totalFormulaScore(matches: FormulaMatch[]): number {
 
 /**
  * 本当に「どうやっても」消せないブロックか？
- * 一番下の行の演算子で、左右がすでに演算子（または端）になっている場合のみ true
+ * 一番下の行の演算子で、左右の少なくとも一方が
+ * 「すでに演算子（数字になれない）」になっている場合のみ true
  */
 export function isPermanentlyUnclearable(
   board: Board,
@@ -87,14 +88,16 @@ export function isPermanentlyUnclearable(
   const cell = grid[y][x];
   if (cell === null || cell.kind !== "op") return false;
 
-  // 左右のセルを確認
   const left = x > 0 ? grid[y][x - 1] : null;
   const right = x < board.width - 1 ? grid[y][x + 1] : null;
 
-  // 左右のどちらかが「数字になれる空き」なら、将来消せる可能性がある
-  const leftCanBeNum = left === null;   // 空きがあれば数字が落ちてくる可能性あり
-  const rightCanBeNum = right === null;
+  // その側が「数字になれる」か？
+  // null（空き）またはすでに数字 → なれる
+  // 演算子 → なれない
+  const leftOk = left === null || left.kind === "num";
+  const rightOk = right === null || right.kind === "num";
 
-  // 左右両方とも「すでに何か置かれていて数字になれない」場合のみ永久に消せない
-  return !leftCanBeNum && !rightCanBeNum;
+  // 左右両方とも数字になれる場合だけ消せる可能性がある
+  // どちらか一方でもなれない → 永久に消せない
+  return !(leftOk && rightOk);
 }
