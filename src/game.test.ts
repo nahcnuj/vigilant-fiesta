@@ -171,3 +171,72 @@ Deno.test("水平向きのハードドロップ後、片方は下まで落ちる
   assertEquals(game.board.get(2, 3)?.value, 2);
   assertEquals(game.board.get(2, 2), null);
 });
+
+Deno.test("onEvent: moved rotated locked cleared levelup gameover", () => {
+  const events: string[] = [];
+  const game = new Game(8, 10, {
+    current: pair(num(1), num(2)),
+    next: pair(num(5), num(6)),
+    onEvent: (ev) => events.push(ev.type),
+  });
+  game.moveRight();
+  assert(events.includes("moved"));
+  game.rotateCW();
+  assert(events.includes("rotated"));
+
+  // 数式 + レベルアップ
+  for (let i = 0; i < 10; i++) {
+    const x = (i % 2) * 3;
+    const y = 5 + Math.floor(i / 2);
+    game.board.placeBlocks([
+      { x, y, block: num(5) },
+      { x: x + 1, y, block: op("*") },
+      { x: x + 2, y, block: num(5) },
+    ]);
+  }
+  game.hardDrop();
+  assert(events.includes("locked"));
+  assert(events.includes("cleared"));
+  assert(events.includes("levelup"));
+});
+
+Deno.test("onEvent: constructor gameover", () => {
+  const events: string[] = [];
+  const game = new Game(8, 1, {
+    current: pair(num(1), num(2)),
+    next: pair(num(3), num(4)),
+    onEvent: (ev) => events.push(ev.type),
+  });
+  assert(game.isGameOver);
+  assert(events.includes("gameover"));
+});
+
+Deno.test("onEvent: spawnNext gameover after fill", () => {
+  const events: string[] = [];
+  const game = new Game(8, 10, {
+    current: pair(num(1), num(2)),
+    next: pair(num(3), num(4)),
+    onEvent: (ev) => events.push(ev.type),
+  });
+  for (let y = 0; y < 10; y++) {
+    for (let x = 0; x < 8; x++) {
+      game.board.placeBlocks([{ x, y, block: num(1) }]);
+    }
+  }
+  game.hardDrop();
+  assert(game.isGameOver);
+  assert(events.includes("gameover"));
+});
+
+Deno.test("rotateCW blocked does not emit rotated", () => {
+  const events: string[] = [];
+  const game = new Game(8, 10, {
+    current: pair(num(1), num(2)),
+    next: pair(num(3), num(4)),
+    onEvent: (ev) => events.push(ev.type),
+  });
+  for (let i = 0; i < 20; i++) game.moveLeft();
+  events.length = 0;
+  game.rotateCW();
+  assertEquals(events.includes("rotated"), false);
+});
