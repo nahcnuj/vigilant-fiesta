@@ -1,4 +1,10 @@
-﻿import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
+﻿import * as PIXI from "https://esm.sh/pixi.js@7.4.0";
+
+interface PixiText {
+  x: number;
+  y: number;
+  anchor: { set(x: number, y?: number): void };
+}
 import type { Cell } from "../board.ts";
 import type { Block } from "../piece.ts";
 import { canvasCellSize, paintList } from "./layout.ts";
@@ -8,11 +14,11 @@ const SPAWN_ROWS = 2;
 const DANGER_LINE_ROW = 1;
 
 export class Renderer {
-  readonly app: PIXI.Application;
+  readonly app: any;
   private cellSize: number;
-  private guides: PIXI.Graphics;
-  private graphics: PIXI.Graphics;
-  private labels: PIXI.Container;
+  private guides: any;
+  private graphics: any;
+  private labels: any;
 
   constructor(private width: number, private height: number) {
     this.cellSize = canvasCellSize(this.width, this.height);
@@ -86,10 +92,10 @@ export class Renderer {
       // Permanently unerasable blocks are drawn darker
       const lightness = r.dead ? 22 : 45;
       const saturation = r.dead ? 35 : 70;
-      this.graphics.beginFill(new PIXI.Color({ h: r.hue, s: saturation, l: lightness }));
+      this.graphics.beginFill(new (PIXI.Color as any)({ h: r.hue, s: saturation, l: lightness }) as any);
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
-      const text = new PIXI.Text(r.label, {
+      const text: PixiText = new PIXI.Text(r.label, {
         fontFamily: "system-ui, sans-serif",
         fontSize,
         fontWeight: "700",
@@ -97,12 +103,19 @@ export class Renderer {
         align: "center",
       });
       text.anchor.set(0.5);
-      text.x = r.x + r.w / 2;
-      text.y = r.y + r.h / 2;
+      (text as PixiText).x = r.x + r.w / 2;
+      (text as PixiText).y = r.y + r.h / 2;
       this.labels.addChild(text);
     }
   }
 }
+
+
+
+
+
+
+
 
 
 

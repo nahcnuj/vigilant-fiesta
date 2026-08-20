@@ -2,12 +2,12 @@
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
 import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
-import type { Block } from "./piece.ts";
+import { num, op, type Block } from "./piece.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
 
-const DEFAULT_PAGE_TITLE = "關ｽ縺｡迚ｩ繝代ぜ繝ｫ繧ｲ繝ｼ繝繝ｻ陂・;
+const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
 
 
 /** AdSense: enable retry after filled/unfilled or fallback timeout. */
@@ -50,9 +50,7 @@ function paintRuleExample(): void {
     const kind = el.dataset.kind;
     const raw = el.dataset.value;
     if (!kind || raw === undefined) continue;
-    const block: Block = kind === "num"
-      ? { kind: "num", value: Number(raw) }
-      : { kind: "op", value: raw as "+" | "-" | "*" | "/" };
+    const block: Block = kind === "num" ? num(Number(raw)) : op(raw as "+" | "-" | "*" | "/");
     el.textContent = blockLabel(block);
     el.style.background = blockFill(block);
   }
@@ -385,4 +383,10 @@ initControlsCarousel();
 setResultOverlayVisible(false);
 btnRetry.disabled = true;
 requestAdsIn(adTitle);
+
+
+
+
+
+
 
