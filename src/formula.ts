@@ -29,7 +29,6 @@ export function findFormulas(board: Board): FormulaMatch[] {
   const h = board.height;
   const w = board.width;
 
-  // Horizontal →
   for (let y = 0; y < h; y++) {
     for (let x = 0; x + 2 < w; x++) {
       const a = grid[y][x];
@@ -47,7 +46,6 @@ export function findFormulas(board: Board): FormulaMatch[] {
     }
   }
 
-  // Vertical ↓
   for (let x = 0; x < w; x++) {
     for (let y = 0; y + 2 < h; y++) {
       const a = grid[y][x];
@@ -73,9 +71,9 @@ export function totalFormulaScore(matches: FormulaMatch[]): number {
 }
 
 /**
- * 本当に「どうやっても」消せないブロックか？
- * 一番下の行の演算子で、左右の少なくとも一方が
- * 「すでに演算子（数字になれない）」になっている場合のみ true
+ * 「どうやっても」消せないブロックか？
+ * 一番下の行の演算子で、左右のどちらか一方でも
+ * すでに演算子が入っていて数字になれない場合 → true
  */
 export function isPermanentlyUnclearable(
   board: Board,
@@ -91,13 +89,10 @@ export function isPermanentlyUnclearable(
   const left = x > 0 ? grid[y][x - 1] : null;
   const right = x < board.width - 1 ? grid[y][x + 1] : null;
 
-  // その側が「数字になれる」か？
-  // null（空き）またはすでに数字 → なれる
-  // 演算子 → なれない
+  // 数字になれるか？（空き or すでに数字）
   const leftOk = left === null || left.kind === "num";
   const rightOk = right === null || right.kind === "num";
 
-  // 左右両方とも数字になれる場合だけ消せる可能性がある
-  // どちらか一方でもなれない → 永久に消せない
+  // 両方とも数字になれる場合だけ消せる可能性あり
   return !(leftOk && rightOk);
 }
