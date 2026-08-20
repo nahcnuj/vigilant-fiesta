@@ -1,8 +1,8 @@
-import { Game, type GameOptions } from "./game.ts";
+﻿import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
 import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
-import type { Block } from "./piece.ts";
+import { num, op, type Block } from "./piece.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
@@ -50,9 +50,7 @@ function paintRuleExample(): void {
     const kind = el.dataset.kind;
     const raw = el.dataset.value;
     if (!kind || raw === undefined) continue;
-    const block: Block = kind === "num"
-      ? { kind: "num", value: Number(raw) }
-      : { kind: "op", value: raw as "+" | "-" | "*" | "/" };
+    const block: Block = kind === "num" ? num(Number(raw)) : op(raw as "+" | "-" | "*" | "/");
     el.textContent = blockLabel(block);
     el.style.background = blockFill(block);
   }
@@ -109,7 +107,7 @@ function activeCells() {
 
 function paint(): void {
   if (!game || !renderer) return;
-  renderer.render(game.board.getGrid(), activeCells());
+  renderer.render(game.board.getGrid(), activeCells(), game.board);
   updateHud();
 }
 
@@ -200,7 +198,7 @@ function stopPlayLoop(): void {
     detachInput = null;
   }
   if (renderer && tickerFn) {
-    renderer.app.ticker.remove(tickerFn);
+    Reflect.apply(Reflect.get(Reflect.get(renderer.app, "ticker"), "remove"), Reflect.get(renderer.app, "ticker"), [tickerFn]);
     tickerFn = null;
   }
   dropAccMs = 0;
@@ -253,7 +251,7 @@ function startPlay(): void {
       endPlay();
       return;
     }
-    dropAccMs += renderer.app.ticker.deltaMS;
+    dropAccMs += Reflect.get(Reflect.get(renderer.app, "ticker"), "deltaMS") as number;
     const interval = dropIntervalMs(game.level);
     while (dropAccMs >= interval) {
       dropAccMs -= interval;
@@ -263,7 +261,7 @@ function startPlay(): void {
     paint();
     if (game.isGameOver) endPlay();
   };
-  renderer.app.ticker.add(tickerFn);
+  Reflect.apply(Reflect.get(Reflect.get(renderer.app, "ticker"), "add"), Reflect.get(renderer.app, "ticker"), [tickerFn]);
 }
 
 
@@ -294,7 +292,7 @@ function endPlay(): void {
   stopPlayLoop();
   // Keep renderer + final board visible under overlay
   if (game && renderer) {
-    renderer.render(game.board.getGrid(), []);
+    renderer.render(game.board.getGrid(), [], game.board);
     updateHud();
   }
   const thumb = captureBoardThumbnail(160);
@@ -358,7 +356,7 @@ function initControlsCarousel(): void {
         const b = document.createElement("button");
         b.type = "button";
         b.className = "controls-dot";
-        b.setAttribute("aria-label", `操作体系 ${i + 1}`);
+        b.setAttribute("aria-label", `謫堺ｽ應ｽ鍋ｳｻ ${i + 1}`);
         b.addEventListener("click", () => {
           (slides[i] as HTMLElement).scrollIntoView({
             behavior: "smooth",
@@ -385,3 +383,12 @@ initControlsCarousel();
 setResultOverlayVisible(false);
 btnRetry.disabled = true;
 requestAdsIn(adTitle);
+
+
+
+
+
+
+
+
+

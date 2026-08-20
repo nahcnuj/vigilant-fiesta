@@ -2,12 +2,17 @@
   "imports": {
     "playwright": "npm:playwright@1.62.1"
   },
+  "compilerOptions": {
+    "lib": ["deno.window", "dom", "dom.iterable"],
+    "strict": true
+  },
   "tasks": {
     "test": "deno test --allow-read --allow-net src/ tests/integration/",
     "test:unit": "deno test --allow-read --allow-net src/",
     "test:integration": "deno test --allow-read --allow-net tests/integration/",
     "test:e2e": "deno test -A --no-check tests/e2e/",
     "build": "deno bundle --allow-import src/main.ts -o dist/main.js",
-    "dev": "deno task build && npx --yes serve ."
+    "dev": "deno task build && npx --yes serve .",
+    "check": "deno check src/"
   }
 }
