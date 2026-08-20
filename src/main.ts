@@ -1,7 +1,8 @@
-﻿import { Game, type GameOptions } from "./game.ts";
+import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
 import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
+import { audio } from "./audio.ts";
 import { num, op, type Block } from "./piece.ts";
 
 const WIDTH = 8;
@@ -222,7 +223,9 @@ function sendPlayEvent(): void {
   };
   w.gtag?.("event", "play");
 }
-function startPlay(): void {
+async function startPlay(): Promise<void> {
+  await audio.unlock();
+  audio.playSe("ui");
   sendPlayEvent();
 
   document.title = DEFAULT_PAGE_TITLE;
@@ -233,7 +236,19 @@ function startPlay(): void {
   destroyRenderer();
 
   showScreen("playing");
-  game = new Game(WIDTH, HEIGHT, gameOptionsFromUrl());
+  game = new Game(WIDTH, HEIGHT, {
+    ...gameOptionsFromUrl(),
+    onEvent: (ev) => {
+      switch (ev.type) {
+        case "moved": audio.playSe("move"); break;
+        case "rotated": audio.playSe("rotate"); break;
+        case "locked": audio.playSe("drop"); break;
+        case "cleared": audio.playSe("clear"); break;
+        case "levelup": audio.playSe("levelup"); break;
+        case "gameover": audio.playSe("gameover"); break;
+      }
+    },
+  });
   renderer = new Renderer(WIDTH, HEIGHT);
   renderer.attachTo("game-container");
   detachInput = setupInput(game);
@@ -245,6 +260,7 @@ function startPlay(): void {
     return;
   }
 
+  audio.startBgm();
   tickerFn = () => {
     if (!game || !renderer) return;
     if (game.isGameOver) {
@@ -288,6 +304,7 @@ function captureBoardThumbnail(maxWidth = 160): string | null {
   }
 }
 function endPlay(): void {
+  audio.stopBgm();
   const finalScore = game?.score ?? 0;
   stopPlayLoop();
   // Keep renderer + final board visible under overlay
@@ -318,10 +335,10 @@ function endPlay(): void {
 }
 
 paintRuleExample();
-btnStart.addEventListener("click", () => startPlay());
+btnStart.addEventListener("click", () => void startPlay());
 btnRetry.addEventListener("click", () => {
   if (btnRetry.disabled) return;
-  startPlay();
+  void startPlay();
 });
 
 
