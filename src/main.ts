@@ -32,6 +32,8 @@ const btnStart = document.getElementById("btn-start")!;
 const btnRetry = document.getElementById("btn-retry") as HTMLButtonElement;
 const adTitle = document.getElementById("ad-title");
 const adResult = document.getElementById("ad-result");
+const adSideLeft = document.getElementById("ad-side-left");
+const adSideRight = document.getElementById("ad-side-right");
 
 let game: Game | null = null;
 let renderer: Renderer | null = null;
@@ -400,6 +402,8 @@ initControlsCarousel();
 setResultOverlayVisible(false);
 btnRetry.disabled = true;
 requestAdsIn(adTitle);
+requestAdsIn(adSideLeft);
+requestAdsIn(adSideRight);
 
 
 
