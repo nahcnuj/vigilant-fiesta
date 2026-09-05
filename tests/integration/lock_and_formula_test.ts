@@ -12,7 +12,7 @@ Deno.test("integration: hard drop locks pair and next becomes current", () => {
   assertEquals(game.current.pivot, num(7));
   assertEquals(game.current.secondary, op("+"));
   assert(
-    game.board.getGrid().some((row) => row.some((c) => c !== null)),
+    game.getGrid().some((row) => row.some((c) => c !== null)),
   );
 });
 
@@ -21,14 +21,14 @@ Deno.test("integration: existing num-op-num clears on resolve after lock", () =>
     current: new FallingPair(num(9), num(8)),
     next: new FallingPair(num(1), num(1)),
   });
-  game.board.placeBlocks([
+  game.seedBlocks([
     { x: 0, y: 9, block: num(1) },
     { x: 1, y: 9, block: op("+") },
     { x: 2, y: 9, block: num(3) },
   ]);
   game.hardDrop();
   assertEquals(game.score >= 4, true);
-  assertEquals(game.board.get(0, 9), null);
-  assertEquals(game.board.get(1, 9), null);
-  assertEquals(game.board.get(2, 9), null);
+  assertEquals(game.getCell(0, 9), null);
+  assertEquals(game.getCell(1, 9), null);
+  assertEquals(game.getCell(2, 9), null);
 });

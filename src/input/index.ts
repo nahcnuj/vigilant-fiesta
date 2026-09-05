@@ -2,7 +2,6 @@
  * Input package: map any device to GameAction, then to Game.
  */
 export type { GameAction } from "./action.ts";
-export { ALL_GAME_ACTIONS, GAME_ACTION_LABELS } from "./action.ts";
 
 export type { ActionHandler } from "./controller.ts";
 export { createGameController } from "./controller.ts";
@@ -16,10 +15,7 @@ export {
   type KeyboardSourceOptions,
 } from "./keyboard.ts";
 
-export {
-  createTouchPadSource,
-  type TouchPadOptions,
-} from "./touch.ts";
+export { createTouchPadSource, type TouchPadOptions } from "./touch.ts";
 
 import type { Game } from "../game.ts";
 import { createGameController } from "./controller.ts";

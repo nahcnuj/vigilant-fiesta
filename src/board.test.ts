@@ -1,4 +1,7 @@
-import { assertEquals, assert } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { Board } from "./board.ts";
 import { num, op } from "./piece.ts";
 
@@ -12,6 +15,19 @@ Deno.test("空きには置けるが、重なりと場外には置けない", () 
   board.placeBlocks(cells);
   assert(!board.canPlaceBlocks(cells));
   assert(!board.canPlaceBlocks([{ x: -1, y: 0, block: num(2) }]));
+});
+
+Deno.test("placeBlocks は重複・場外を拒否する", () => {
+  const board = new Board(3, 3);
+  board.placeBlocks([{ x: 1, y: 1, block: num(2) }]);
+  let threw = false;
+  try {
+    board.placeBlocks([{ x: 1, y: 1, block: num(3) }]);
+  } catch {
+    threw = true;
+  }
+  assert(threw);
+  assertEquals(board.get(1, 1), num(2));
 });
 
 Deno.test("セル消去後、列ごとに下へ詰める", () => {

@@ -24,17 +24,30 @@ export function randomBlock(rng: () => number = Math.random): Block {
   const ops: Operator[] = ["+", "-", "*", "/"];
   return op(ops[Math.floor(rng() * ops.length)]);
 }
+
+/** Read-only view of a falling / next pair (no rotate mutators). */
+export type PairView = {
+  readonly pivot: Block;
+  readonly secondary: Block;
+  readonly orientation: number;
+  blocksAt(x: number, y: number): { x: number; y: number; block: Block }[];
+};
+
 export class FallingPair {
-  orientation = 0;
+  private _orientation = 0;
 
   constructor(
     public readonly pivot: Block,
     public readonly secondary: Block,
   ) {}
 
+  get orientation(): number {
+    return this._orientation;
+  }
+
   /** Cell offsets of [pivot, secondary] relative to pair origin. */
   offsets(): [{ dx: number; dy: number }, { dx: number; dy: number }] {
-    const o = this.orientation & 3;
+    const o = this._orientation & 3;
     if (o === 0) return [{ dx: 0, dy: 0 }, { dx: 0, dy: 1 }];
     if (o === 1) return [{ dx: 0, dy: 0 }, { dx: -1, dy: 0 }];
     if (o === 2) return [{ dx: 0, dy: 0 }, { dx: 0, dy: -1 }];
@@ -51,11 +64,37 @@ export class FallingPair {
 
   /** Rotate 90° clockwise (requirements: ↓ key). */
   rotateCW(): void {
-    this.orientation = (this.orientation + 1) & 3;
+    this._orientation = (this._orientation + 1) & 3;
   }
 
   rotateCCW(): void {
-    this.orientation = (this.orientation + 3) & 3;
+    this._orientation = (this._orientation + 3) & 3;
+  }
+
+  /** Independent copy (pivot/secondary/orientation) so callers cannot alias-mutate. */
+  clone(): FallingPair {
+    const copy = new FallingPair(this.pivot, this.secondary);
+    copy._orientation = this._orientation;
+    return copy;
+  }
+
+  /** Snapshot without rotate methods (safe to hand to UI/tests). */
+  asView(): PairView {
+    const self = this;
+    return {
+      get pivot() {
+        return self.pivot;
+      },
+      get secondary() {
+        return self.secondary;
+      },
+      get orientation() {
+        return self._orientation;
+      },
+      blocksAt(x: number, y: number) {
+        return self.blocksAt(x, y);
+      },
+    };
   }
 }
 

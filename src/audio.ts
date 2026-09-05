@@ -1,4 +1,6 @@
-﻿/** Web Audio API only SE/BGM (no external assets). */
+/** Web Audio API only SE/BGM (no external assets). */
+
+import { isE2e } from "./e2e.ts";
 
 export type SeId =
   | "move"
@@ -20,7 +22,11 @@ export interface AudioContextLike {
   resume(): Promise<void>;
   createOscillator(): OscillatorLike;
   createGain(): GainLike;
-  createBuffer(channels: number, length: number, sampleRate: number): BufferLike;
+  createBuffer(
+    channels: number,
+    length: number,
+    sampleRate: number,
+  ): BufferLike;
   createBufferSource(): BufferSourceLike;
 }
 
@@ -57,15 +63,6 @@ export interface StorageLike {
   setItem(key: string, value: string): void;
 }
 
-function isE2e(): boolean {
-  const loc = globalThis.location;
-  const search =
-    typeof loc === "object" && loc !== null
-      ? String((loc as { search?: string }).search ?? "")
-      : "";
-  return new URLSearchParams(search).get("e2e") === "1";
-}
-
 function defaultCreateContext(): AudioContextLike | null {
   const g = globalThis as unknown as {
     AudioContext?: new () => AudioContextLike;
@@ -78,7 +75,8 @@ function defaultCreateContext(): AudioContextLike | null {
 
 function defaultStorage(): StorageLike | null {
   try {
-    const s = (globalThis as unknown as { localStorage?: StorageLike }).localStorage;
+    const s =
+      (globalThis as unknown as { localStorage?: StorageLike }).localStorage;
     if (!s || typeof s.getItem !== "function") return null;
     return s;
   } catch {

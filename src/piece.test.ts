@@ -1,4 +1,7 @@
-import { assertEquals, assertThrows } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import {
+  assertEquals,
+  assertThrows,
+} from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { FallingPair, num, op, randomBlock, randomPair } from "./piece.ts";
 
 Deno.test("2ブロックのペアは時計回りに回転し、4回で向きが戻る", () => {
@@ -26,6 +29,32 @@ Deno.test("blocksAt は原点と相対オフセットを返す", () => {
     { x: 4, y: 2, block: num(3) },
     { x: 4, y: 3, block: op("-") },
   ]);
+});
+
+Deno.test("clone は向きをコピーし、元の rotate から独立する", () => {
+  const pair = new FallingPair(num(1), num(2));
+  pair.rotateCW();
+  pair.rotateCW();
+  const copy = pair.clone();
+  assertEquals(copy.orientation, 2);
+  pair.rotateCW();
+  assertEquals(pair.orientation, 3);
+  assertEquals(copy.orientation, 2);
+  copy.rotateCW();
+  assertEquals(copy.orientation, 3);
+  assertEquals(pair.orientation, 3);
+});
+
+Deno.test("asView は向きを読めても rotate を公開しない", () => {
+  const pair = new FallingPair(num(1), num(2));
+  pair.rotateCW();
+  const view = pair.asView();
+  assertEquals(view.orientation, 1);
+  assertEquals(
+    "rotateCW" in view,
+    false,
+  );
+  assertEquals(view.blocksAt(0, 0)[1], { x: -1, y: 0, block: num(2) });
 });
 
 Deno.test("num は 1–9 のみ受け付ける", () => {

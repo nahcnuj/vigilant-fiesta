@@ -1,14 +1,30 @@
-﻿import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
-import type { Cell } from "../board.ts";
+import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
 import type { Block } from "../piece.ts";
+import { spawnColumn } from "../spawn.ts";
 import { canvasCellSize, paintList } from "./layout.ts";
+import {
+  FILL_DEAD_LIGHTNESS,
+  FILL_DEAD_SATURATION,
+  FILL_LIGHTNESS,
+  FILL_SATURATION,
+  hslToRgbInt,
+} from "./fill.ts";
+import { appTicker, setLineStyle, setXy } from "./pixi-surface.ts";
 
-/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line 遶翫・risk of game over. */
+/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the danger line risk game over. */
 const SPAWN_ROWS = 2;
 const DANGER_LINE_ROW = 1;
 
+export type TickerFn = () => void;
+
+/** Minimal board surface the renderer needs (Game implements this). */
+export type RenderBoard = {
+  getGrid(): import("../board.ts").Cell[][];
+  isDeadCell(x: number, y: number): boolean;
+};
+
 export class Renderer {
-  readonly app: InstanceType<typeof PIXI.Application>;
+  private readonly app: InstanceType<typeof PIXI.Application>;
   private cellSize: number;
   private guides: InstanceType<typeof PIXI.Graphics>;
   private graphics: InstanceType<typeof PIXI.Graphics>;
@@ -32,10 +48,6 @@ export class Renderer {
     this.drawGuides();
   }
 
-  private spawnOriginX(): number {
-    return Math.floor(this.width / 2);
-  }
-
   /** Danger line + spawn frame (static; redrawn if cellSize ever changes). */
   private drawGuides(): void {
     const cs = this.cellSize;
@@ -43,20 +55,17 @@ export class Renderer {
     const g = this.guides;
     g.clear();
 
-    // --- Spawn frame: where the next pair appears (pivot column, 2 rows) ---
-    const sx = this.spawnOriginX() * cs;
+    const sx = spawnColumn(this.width) * cs;
     const sy = 0;
     const sw = cs;
     const sh = SPAWN_ROWS * cs;
-    Reflect.apply(g.lineStyle, g, [2, 0x5ec8ff, 0.85]);
+    setLineStyle(g, 2, 0x5ec8ff, 0.85);
     g.beginFill(0x5ec8ff, 0.08);
     g.drawRoundedRect(sx + 1, sy + 1, sw - 2, sh - 2, 4);
     g.endFill();
 
-    // --- Danger line: below spawn zone (y == SPAWN_ROWS) ---
     const ly = DANGER_LINE_ROW * cs;
-    Reflect.apply(g.lineStyle, g, [2, 0xff5a5a, 0.9]);
-    // dashed horizontal line
+    setLineStyle(g, 2, 0xff5a5a, 0.9);
     const dash = 8;
     const gap = 6;
     let x = 0;
@@ -74,19 +83,64 @@ export class Renderer {
     else console.warn(`Renderer: element #${elementId} not found`);
   }
 
+  addTicker(fn: TickerFn): void {
+    appTicker(this.app).add(fn);
+  }
+
+  removeTicker(fn: TickerFn): void {
+    appTicker(this.app).remove(fn);
+  }
+
+  /** Milliseconds since last ticker frame (PIXI ticker). */
+  get deltaMS(): number {
+    return appTicker(this.app).deltaMS;
+  }
+
+  /** Detach canvas from DOM and destroy the PIXI application. */
+  destroy(): void {
+    const view = this.app.view as HTMLElement | null;
+    view?.parentElement?.removeChild(view);
+    this.app.destroy(true);
+  }
+
+  /**
+   * Capture the current board view as a PNG data URL (result thumbnail).
+   * Returns null if the canvas is unavailable or tainted.
+   */
+  snapshotDataURL(maxWidth = 160): string | null {
+    this.app.renderer.render(this.app.stage);
+    const src = this.app.view as HTMLCanvasElement;
+    if (!src || src.width < 1) return null;
+    const scale = Math.min(1, maxWidth / src.width);
+    const w = Math.max(1, Math.round(src.width * scale));
+    const h = Math.max(1, Math.round(src.height * scale));
+    const tmp = document.createElement("canvas");
+    tmp.width = w;
+    tmp.height = h;
+    const ctx = tmp.getContext("2d");
+    if (!ctx) return null;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(src, 0, 0, w, h);
+    try {
+      return tmp.toDataURL("image/png");
+    } catch {
+      return null;
+    }
+  }
+
   render(
-    grid: Cell[][],
+    board: RenderBoard,
     active: { x: number; y: number; block: Block }[] = [],
-    board?: import("../board.ts").Board,
   ) {
     this.graphics.clear();
     this.labels.removeChildren();
     const fontSize = Math.max(12, Math.floor(this.cellSize * 0.45));
-    for (const r of paintList(grid, this.cellSize, active, board)) {
-      // Permanently unerasable blocks are drawn darker
-      const lightness = r.dead ? 22 : 45;
-      const saturation = r.dead ? 35 : 70;
-      this.graphics.beginFill(new (PIXI.Color as any)({ h: r.hue, s: saturation, l: lightness }) as any);
+    const grid = board.getGrid();
+    const isDead = (x: number, y: number) => board.isDeadCell(x, y);
+    for (const r of paintList(grid, this.cellSize, active, isDead)) {
+      const lightness = r.dead ? FILL_DEAD_LIGHTNESS : FILL_LIGHTNESS;
+      const saturation = r.dead ? FILL_DEAD_SATURATION : FILL_SATURATION;
+      this.graphics.beginFill(hslToRgbInt(r.hue, saturation, lightness));
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
       const text = new PIXI.Text(r.label, {
@@ -97,24 +151,8 @@ export class Renderer {
         align: "center",
       });
       text.anchor.set(0.5);
-      Reflect.set(text, "x", r.x + r.w / 2);
-      Reflect.set(text, "y", r.y + r.h / 2);
+      setXy(text, r.x + r.w / 2, r.y + r.h / 2);
       this.labels.addChild(text);
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

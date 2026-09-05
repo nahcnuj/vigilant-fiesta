@@ -10,8 +10,9 @@ export class Board {
   constructor(width = 8, height = 10) {
     this.width = width;
     this.height = height;
-    this.grid = Array.from({ length: height }, () =>
-      Array<Cell>(width).fill(null)
+    this.grid = Array.from(
+      { length: height },
+      () => Array<Cell>(width).fill(null),
     );
   }
 
@@ -35,7 +36,11 @@ export class Board {
     return true;
   }
 
+  /** Place blocks; throws if any cell is out of bounds or occupied. */
   placeBlocks(cells: { x: number; y: number; block: Block }[]): void {
+    if (!this.canPlaceBlocks(cells)) {
+      throw new Error("Board.placeBlocks: cells overlap or out of bounds");
+    }
     for (const { x, y, block } of cells) {
       this.grid[y][x] = block;
     }
