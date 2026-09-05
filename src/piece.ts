@@ -71,6 +71,13 @@ export class FallingPair {
     this._orientation = (this._orientation + 3) & 3;
   }
 
+  /** Independent copy (pivot/secondary/orientation) so callers cannot alias-mutate. */
+  clone(): FallingPair {
+    const copy = new FallingPair(this.pivot, this.secondary);
+    copy._orientation = this._orientation;
+    return copy;
+  }
+
   /** Snapshot without rotate methods (safe to hand to UI/tests). */
   asView(): PairView {
     const self = this;

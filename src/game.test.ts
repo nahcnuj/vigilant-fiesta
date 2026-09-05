@@ -237,6 +237,34 @@ Deno.test("onEvent: spawnNext gameover after fill", () => {
   assert(events.includes("gameover"));
 });
 
+Deno.test("GameOptions current/next are cloned (external rotateCW cannot alias-mutate)", () => {
+  const current = new FallingPair(num(1), num(2));
+  const next = new FallingPair(num(3), num(4));
+  const game = new Game(8, 10, { current, next });
+  assertEquals(game.current.orientation, 0);
+  current.rotateCW();
+  next.rotateCW();
+  next.rotateCW();
+  assertEquals(current.orientation, 1);
+  assertEquals(next.orientation, 2);
+  assertEquals(game.current.orientation, 0);
+  assertEquals(game.next.orientation, 0);
+  // Pre-rotated option still copies orientation into the session clone
+  const spun = new FallingPair(num(5), num(6));
+  spun.rotateCW();
+  spun.rotateCW();
+  spun.rotateCW();
+  const g2 = new Game(4, 4, {
+    current: spun,
+    next: new FallingPair(num(7), num(8)),
+    position: { x: 1, y: 0 },
+  });
+  assertEquals(g2.current.orientation, 3);
+  spun.rotateCW();
+  assertEquals(spun.orientation, 0);
+  assertEquals(g2.current.orientation, 3);
+});
+
 Deno.test("seedBlocks / getCell / isDeadCell encapsulate board", () => {
   const game = new Game(8, 10, {
     current: pair(num(9), num(9)),

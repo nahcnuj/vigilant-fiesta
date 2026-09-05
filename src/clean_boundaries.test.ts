@@ -40,6 +40,8 @@ Deno.test("Game does not expose public board field", async () => {
   const text = await src("./game.ts");
   assert(/#board/.test(text));
   assertEquals(/\breadonly board\b/.test(text), false);
+  assert(/options\.current\?\.clone\(\)/.test(text));
+  assert(/options\.next\?\.clone\(\)/.test(text));
   const game = new Game(8, 10, {
     current: new FallingPair(num(1), num(2)),
     next: new FallingPair(num(3), num(4)),

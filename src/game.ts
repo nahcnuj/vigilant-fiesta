@@ -1,10 +1,5 @@
 import { Board, type Cell } from "./board.ts";
-import {
-  FallingPair,
-  randomPair,
-  type Block,
-  type PairView,
-} from "./piece.ts";
+import { type Block, FallingPair, type PairView, randomPair } from "./piece.ts";
 import {
   findFormulas,
   isPermanentlyUnclearable,
@@ -55,9 +50,12 @@ export class Game {
     this.#rng = options.rng ?? Math.random;
     this.#onEvent = options.onEvent;
     this.#board = new Board(width, height);
-    this.#current = options.current ?? randomPair(this.#rng);
-    this.#next = options.next ?? randomPair(this.#rng);
-    this.#position = options.position ?? this.spawnPosition();
+    // Clone option pairs so external rotateCW cannot mutate session orientation.
+    this.#current = options.current?.clone() ?? randomPair(this.#rng);
+    this.#next = options.next?.clone() ?? randomPair(this.#rng);
+    this.#position = options.position
+      ? { ...options.position }
+      : this.spawnPosition();
     if (!this.#board.canPlaceBlocks(this.cellsAt())) {
       this.#gameOver = true;
       this.#onEvent?.({ type: "gameover" });

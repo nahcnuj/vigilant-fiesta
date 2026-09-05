@@ -31,6 +31,20 @@ Deno.test("blocksAt は原点と相対オフセットを返す", () => {
   ]);
 });
 
+Deno.test("clone は向きをコピーし、元の rotate から独立する", () => {
+  const pair = new FallingPair(num(1), num(2));
+  pair.rotateCW();
+  pair.rotateCW();
+  const copy = pair.clone();
+  assertEquals(copy.orientation, 2);
+  pair.rotateCW();
+  assertEquals(pair.orientation, 3);
+  assertEquals(copy.orientation, 2);
+  copy.rotateCW();
+  assertEquals(copy.orientation, 3);
+  assertEquals(pair.orientation, 3);
+});
+
 Deno.test("asView は向きを読めても rotate を公開しない", () => {
   const pair = new FallingPair(num(1), num(2));
   pair.rotateCW();
