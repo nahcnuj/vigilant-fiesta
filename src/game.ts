@@ -1,6 +1,16 @@
-import { Board } from "./board.ts";
-import { type Block, FallingPair, randomPair } from "./piece.ts";
-import { findFormulas, totalFormulaScore } from "./formula.ts";
+import { Board, type Cell } from "./board.ts";
+import {
+  FallingPair,
+  randomPair,
+  type Block,
+  type PairView,
+} from "./piece.ts";
+import {
+  findFormulas,
+  isPermanentlyUnclearable,
+  totalFormulaScore,
+} from "./formula.ts";
+import { spawnColumn } from "./spawn.ts";
 
 export interface Position {
   x: number;
@@ -27,75 +37,97 @@ export interface GameOptions {
 
 /** Mutable play session: falling pairs, placement, formulas, score. */
 export class Game {
-  readonly board: Board;
-  private _current: FallingPair;
-  private _next: FallingPair;
-  private _position: Position;
-  private _score = 0;
-  private _level = 1;
-  private _gameOver = false;
-  private readonly rng: () => number;
-  private readonly onEvent?: (ev: GameEvent) => void;
+  readonly #board: Board;
+  #current: FallingPair;
+  #next: FallingPair;
+  #position: Position;
+  #score = 0;
+  #level = 1;
+  #gameOver = false;
+  readonly #rng: () => number;
+  readonly #onEvent?: (ev: GameEvent) => void;
 
   constructor(
     public readonly width = 8,
     public readonly height = 10,
     options: GameOptions = {},
   ) {
-    this.rng = options.rng ?? Math.random;
-    this.onEvent = options.onEvent;
-    this.board = new Board(width, height);
-    this._current = options.current ?? randomPair(this.rng);
-    this._next = options.next ?? randomPair(this.rng);
-    this._position = options.position ?? this.spawnPosition();
-    if (!this.board.canPlaceBlocks(this.cellsAt())) {
-      this._gameOver = true;
-      this.onEvent?.({ type: "gameover" });
+    this.#rng = options.rng ?? Math.random;
+    this.#onEvent = options.onEvent;
+    this.#board = new Board(width, height);
+    this.#current = options.current ?? randomPair(this.#rng);
+    this.#next = options.next ?? randomPair(this.#rng);
+    this.#position = options.position ?? this.spawnPosition();
+    if (!this.#board.canPlaceBlocks(this.cellsAt())) {
+      this.#gameOver = true;
+      this.#onEvent?.({ type: "gameover" });
     }
   }
 
-  get current(): FallingPair {
-    return this._current;
+  /** Read-only pair view (no rotate mutators). */
+  get current(): PairView {
+    return this.#current.asView();
   }
 
-  get next(): FallingPair {
-    return this._next;
+  get next(): PairView {
+    return this.#next.asView();
   }
 
   /** Snapshot of pivot position (reassignment / mutation of fields has no effect). */
   get position(): Position {
-    return { ...this._position };
+    return { ...this.#position };
   }
 
   get score(): number {
-    return this._score;
+    return this.#score;
   }
 
   get level(): number {
-    return this._level;
+    return this.#level;
   }
 
   get isGameOver(): boolean {
-    return this._gameOver;
+    return this.#gameOver;
+  }
+
+  getGrid(): Cell[][] {
+    return this.#board.getGrid();
+  }
+
+  getCell(x: number, y: number): Cell {
+    return this.#board.get(x, y);
+  }
+
+  /** Domain rule for permanently unclearable cells (for paint styling). */
+  isDeadCell(x: number, y: number): boolean {
+    return isPermanentlyUnclearable(this.#board, x, y);
+  }
+
+  /**
+   * Seed the field for tests / fixtures. Enforces placement invariants.
+   * Does not affect the falling pair.
+   */
+  seedBlocks(cells: { x: number; y: number; block: Block }[]): void {
+    this.#board.placeBlocks(cells);
   }
 
   private spawnPosition(): Position {
-    return { x: Math.floor(this.width / 2), y: 0 };
+    return { x: spawnColumn(this.width), y: 0 };
   }
 
-  private cellsAt(pos = this._position, pair = this._current) {
+  private cellsAt(pos = this.#position, pair = this.#current) {
     return pair.blocksAt(pos.x, pos.y);
   }
 
   private emitGameOver(): void {
-    if (this._gameOver) return;
-    this._gameOver = true;
-    this.onEvent?.({ type: "gameover" });
+    if (this.#gameOver) return;
+    this.#gameOver = true;
+    this.#onEvent?.({ type: "gameover" });
   }
 
   tick(): void {
-    if (this._gameOver) return;
-    if (!this.board.canPlaceBlocks(this.cellsAt())) {
+    if (this.#gameOver) return;
+    if (!this.#board.canPlaceBlocks(this.cellsAt())) {
       this.emitGameOver();
       return;
     }
@@ -105,11 +137,11 @@ export class Game {
   }
 
   tryMove(dx: number, dy: number): boolean {
-    const nx = this._position.x + dx;
-    const ny = this._position.y + dy;
-    if (this.board.canPlaceBlocks(this.cellsAt({ x: nx, y: ny }))) {
-      this._position = { x: nx, y: ny };
-      if (dy === 0 && dx !== 0) this.onEvent?.({ type: "moved" });
+    const nx = this.#position.x + dx;
+    const ny = this.#position.y + dy;
+    if (this.#board.canPlaceBlocks(this.cellsAt({ x: nx, y: ny }))) {
+      this.#position = { x: nx, y: ny };
+      if (dy === 0 && dx !== 0) this.#onEvent?.({ type: "moved" });
       return true;
     }
     return false;
@@ -124,17 +156,21 @@ export class Game {
 
   /** Requirements: ↓ rotates 90° clockwise. */
   rotateCW(): void {
-    this._current.rotateCW();
-    if (!this.board.canPlaceBlocks(this.cellsAt())) {
-      this._current.rotateCCW();
+    this.#current.rotateCW();
+    if (!this.#board.canPlaceBlocks(this.cellsAt())) {
+      this.#current.rotateCCW();
       return;
     }
-    this.onEvent?.({ type: "rotated" });
+    this.#onEvent?.({ type: "rotated" });
   }
 
   /** Requirements: ↑ hard drop. */
   hardDrop(): void {
-    if (this._gameOver) return;
+    if (this.#gameOver) return;
+    if (!this.#board.canPlaceBlocks(this.cellsAt())) {
+      this.emitGameOver();
+      return;
+    }
     while (this.tryMove(0, 1)) {
       /* drop */
     }
@@ -142,9 +178,9 @@ export class Game {
   }
 
   private lockAndResolve(): void {
-    this.onEvent?.({ type: "locked" });
-    this.board.placeBlocks(this.cellsAt());
-    this.board.applyGravity();
+    this.#onEvent?.({ type: "locked" });
+    this.#board.placeBlocks(this.cellsAt());
+    this.#board.applyGravity();
     this.resolveFormulas();
     this.spawnNext();
   }
@@ -152,30 +188,30 @@ export class Game {
   /** Clear formulas, apply gravity, repeat until stable; update score/level. */
   private resolveFormulas(): void {
     for (let guard = 0; guard < 50; guard++) {
-      const matches = findFormulas(this.board);
+      const matches = findFormulas(this.#board);
       if (matches.length === 0) break;
       const delta = totalFormulaScore(matches);
-      this._score += delta;
-      this.onEvent?.({ type: "cleared", scoreDelta: delta });
-      const prevLevel = this._level;
-      this._level = Math.floor(this._score / 250) + 1;
-      if (this._level > prevLevel) {
-        this.onEvent?.({ type: "levelup", level: this._level });
+      this.#score += delta;
+      this.#onEvent?.({ type: "cleared", scoreDelta: delta });
+      const prevLevel = this.#level;
+      this.#level = Math.floor(this.#score / 250) + 1;
+      if (this.#level > prevLevel) {
+        this.#onEvent?.({ type: "levelup", level: this.#level });
       }
       const cleared = new Map<string, { x: number; y: number }>();
       for (const m of matches) {
         for (const c of m.cells) cleared.set(`${c.x},${c.y}`, c);
       }
-      this.board.clearCells([...cleared.values()]);
-      this.board.applyGravity();
+      this.#board.clearCells([...cleared.values()]);
+      this.#board.applyGravity();
     }
   }
 
   private spawnNext(): void {
-    this._current = this._next;
-    this._next = randomPair(this.rng);
-    this._position = this.spawnPosition();
-    if (!this.board.canPlaceBlocks(this.cellsAt())) {
+    this.#current = this.#next;
+    this.#next = randomPair(this.#rng);
+    this.#position = this.spawnPosition();
+    if (!this.#board.canPlaceBlocks(this.cellsAt())) {
       this.emitGameOver();
     }
   }

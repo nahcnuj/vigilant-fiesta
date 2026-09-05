@@ -2,17 +2,18 @@ import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
 import { blockHue, blockLabel, nextPreview } from "./renderer/layout.ts";
+import { blockFillCss } from "./renderer/fill.ts";
 import { audio } from "./audio.ts";
 import { isE2e } from "./e2e.ts";
+import { createAdWaiter, requestAdsIn } from "./ads.ts";
+import { sendPlayEvent } from "./analytics.ts";
+import { initControlsCarousel } from "./controls-carousel.ts";
 import { type Block, num, op } from "./piece.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
 
 const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
-
-/** AdSense: enable retry after filled/unfilled or fallback timeout. */
-const AD_WAIT_FALLBACK_MS = 4000;
 
 type ScreenId = "title" | "playing";
 
@@ -37,15 +38,16 @@ const adResult = document.getElementById("ad-result");
 const adSideLeft = document.getElementById("ad-side-left");
 const adSideRight = document.getElementById("ad-side-right");
 
+const adWaiter = createAdWaiter();
+
 let game: Game | null = null;
 let renderer: Renderer | null = null;
 let detachInput: (() => void) | null = null;
 let tickerFn: (() => void) | null = null;
 let dropAccMs = 0;
 
-/** Same fill as board cells / Next (source: blockHue). */
 function blockFill(block: Block): string {
-  return `hsl(${blockHue(block)} 70% 45%)`;
+  return blockFillCss(blockHue(block));
 }
 
 function paintRuleExample(): void {
@@ -62,8 +64,6 @@ function paintRuleExample(): void {
     el.style.background = blockFill(block);
   }
 }
-
-let adWaitToken = 0;
 
 function e2eRng(): number {
   return 0.5;
@@ -109,89 +109,8 @@ function activeCells() {
 
 function paint(): void {
   if (!game || !renderer) return;
-  renderer.render(game.board, activeCells());
+  renderer.render(game, activeCells());
   updateHud();
-}
-
-/** Push AdSense for ins elements that have not been requested yet. */
-function requestAdsIn(container: Element | null): void {
-  if (!container || isE2e()) return;
-  const insList = container.querySelectorAll("ins.adsbygoogle");
-  const w = globalThis as unknown as {
-    adsbygoogle?: unknown[];
-  };
-  w.adsbygoogle = w.adsbygoogle || [];
-  for (const ins of insList) {
-    if (ins.getAttribute("data-adsbygoogle-status")) continue;
-    try {
-      w.adsbygoogle.push({});
-    } catch {
-      /* adblock / not ready */
-    }
-  }
-}
-
-/**
- * Wait until the ad slot is "shown" enough to unlock retry.
- * - data-ad-status filled | unfilled (AdSense)
- * - iframe appeared inside the slot
- * - fallback timeout (adblock / slow network)
- */
-function waitForAdDisplayed(
-  slot: Element | null,
-  onReady: () => void,
-): void {
-  const token = ++adWaitToken;
-
-  const done = () => {
-    if (token !== adWaitToken) return;
-    onReady();
-  };
-
-  if (isE2e() || !slot) {
-    done();
-    return;
-  }
-
-  const ins = slot.querySelector("ins.adsbygoogle");
-  if (!ins) {
-    done();
-    return;
-  }
-
-  const status = ins.getAttribute("data-ad-status");
-  if (status === "filled" || status === "unfilled") {
-    done();
-    return;
-  }
-
-  if (ins.querySelector("iframe")) {
-    done();
-    return;
-  }
-
-  const observer = new MutationObserver(() => {
-    if (token !== adWaitToken) {
-      observer.disconnect();
-      return;
-    }
-    const st = ins.getAttribute("data-ad-status");
-    if (st === "filled" || st === "unfilled" || ins.querySelector("iframe")) {
-      observer.disconnect();
-      done();
-    }
-  });
-  observer.observe(ins, {
-    attributes: true,
-    attributeFilter: ["data-ad-status"],
-    childList: true,
-    subtree: true,
-  });
-
-  globalThis.setTimeout(() => {
-    observer.disconnect();
-    done();
-  }, AD_WAIT_FALLBACK_MS);
 }
 
 function stopPlayLoop(): void {
@@ -214,20 +133,13 @@ function destroyRenderer(): void {
   game = null;
 }
 
-function sendPlayEvent(): void {
-  if (isE2e()) return;
-  const w = globalThis as unknown as {
-    gtag?: (...args: unknown[]) => void;
-  };
-  w.gtag?.("event", "play");
-}
 async function startPlay(): Promise<void> {
   await audio.unlock();
   audio.playSe("ui");
   sendPlayEvent();
 
   document.title = DEFAULT_PAGE_TITLE;
-  adWaitToken++;
+  adWaiter.cancelPending();
   btnRetry.disabled = true;
   setResultOverlayVisible(false);
   stopPlayLoop();
@@ -294,9 +206,8 @@ function endPlay(): void {
   audio.stopBgm();
   const finalScore = game?.score ?? 0;
   stopPlayLoop();
-  // Keep renderer + final board visible under overlay
   if (game && renderer) {
-    renderer.render(game.board, []);
+    renderer.render(game, []);
     updateHud();
   }
   const thumb = renderer?.snapshotDataURL(160) ?? null;
@@ -314,9 +225,8 @@ function endPlay(): void {
   btnRetry.disabled = true;
   setResultOverlayVisible(true);
 
-  // Fresh push for result ad (new page-like surface)
   requestAdsIn(adResult);
-  waitForAdDisplayed(adResult, () => {
+  adWaiter.waitForAdDisplayed(adResult, () => {
     btnRetry.disabled = false;
   });
 }
@@ -327,64 +237,6 @@ btnRetry.addEventListener("click", () => {
   if (btnRetry.disabled) return;
   void startPlay();
 });
-
-function initControlsCarousel(): void {
-  const root = document.querySelector("[data-controls-carousel]");
-  const track = document.querySelector("[data-controls-track]");
-  const dotsHost = document.querySelector("[data-controls-dots]");
-  if (
-    !(root instanceof HTMLElement) || !(track instanceof HTMLElement) ||
-    !(dotsHost instanceof HTMLElement)
-  ) {
-    return;
-  }
-  const slides = [...track.querySelectorAll(".controls-slide")];
-  if (slides.length === 0) return;
-
-  const visible = () => {
-    const w = track.clientWidth;
-    if (w <= 0) return 1;
-    const sw = (slides[0] as HTMLElement).getBoundingClientRect().width;
-    return Math.max(1, Math.round(w / sw));
-  };
-
-  const syncDots = () => {
-    const vis = visible();
-    const needDots = slides.length > vis;
-    dotsHost.hidden = !needDots;
-    if (!needDots) {
-      dotsHost.replaceChildren();
-      return;
-    }
-    if (dotsHost.childElementCount !== slides.length) {
-      dotsHost.replaceChildren();
-      slides.forEach((_, i) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "controls-dot";
-        b.setAttribute("aria-label", `謫堺ｽ應ｽ鍋ｳｻ ${i + 1}`);
-        b.addEventListener("click", () => {
-          (slides[i] as HTMLElement).scrollIntoView({
-            behavior: "smooth",
-            inline: "start",
-            block: "nearest",
-          });
-        });
-        dotsHost.appendChild(b);
-      });
-    }
-    const idx = Math.round(
-      track.scrollLeft / Math.max(1, (slides[0] as HTMLElement).offsetWidth),
-    );
-    [...dotsHost.children].forEach((el, i) => {
-      el.setAttribute("aria-current", i === idx ? "true" : "false");
-    });
-  };
-
-  track.addEventListener("scroll", () => syncDots(), { passive: true });
-  globalThis.addEventListener("resize", () => syncDots());
-  syncDots();
-}
 
 showScreen("title");
 initControlsCarousel();

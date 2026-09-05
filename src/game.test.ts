@@ -30,9 +30,7 @@ Deno.test("接地すると盤に固定され next が current になる", () => 
   game.hardDrop();
   assertEquals(game.current.pivot, num(5));
   assertEquals(game.current.secondary, op("+"));
-  const filled = game.board.getGrid().some((row) =>
-    row.some((c) => c !== null)
-  );
+  const filled = game.getGrid().some((row) => row.some((c) => c !== null));
   assert(filled);
 });
 
@@ -42,7 +40,7 @@ Deno.test("数式が揃うと消えスコアが増える", () => {
     next: pair(num(1), num(1)),
   });
   // 盤面に 1 +  を置き、落下で 3 を置く… ペアは2個なので事前配置で 1 + 3
-  game.board.placeBlocks([
+  game.seedBlocks([
     { x: 0, y: 9, block: num(1) },
     { x: 1, y: 9, block: op("+") },
     { x: 2, y: 9, block: num(3) },
@@ -52,7 +50,7 @@ Deno.test("数式が揃うと消えスコアが増える", () => {
   game.hardDrop();
   assertEquals(game.score >= 4, true);
   // 1+3 のセルは消えている
-  assertEquals(game.board.get(0, 9), null);
+  assertEquals(game.getCell(0, 9), null);
 });
 
 Deno.test("出現位置に置けないとゲームオーバー", () => {
@@ -63,7 +61,7 @@ Deno.test("出現位置に置けないとゲームオーバー", () => {
   // 盤を埋める（lock 後の重力で上方が空かないようにする）
   for (let y = 0; y < 10; y++) {
     for (let x = 0; x < 8; x++) {
-      game.board.placeBlocks([{ x, y, block: num(1) }]);
+      game.seedBlocks([{ x, y, block: num(1) }]);
     }
   }
   game.hardDrop();
@@ -139,7 +137,7 @@ Deno.test("スコア 250 ごとにレベルが上がる", () => {
   for (let i = 0; i < 10; i++) {
     const x = (i % 2) * 3;
     const y = 5 + Math.floor(i / 2);
-    game.board.placeBlocks([
+    game.seedBlocks([
       { x, y, block: num(5) },
       { x: x + 1, y, block: op("*") },
       { x: x + 2, y, block: num(5) },
@@ -173,14 +171,14 @@ Deno.test("水平向きのハードドロップ後、片方は下まで落ちる
   assertEquals(game.current.orientation, 3);
   assertEquals(game.position.x, 1);
   // 左下に障害（pivot側の列を埋める）
-  game.board.placeBlocks([{ x: 1, y: 3, block: num(9) }]);
+  game.seedBlocks([{ x: 1, y: 3, block: num(9) }]);
   game.hardDrop();
   // pivot(1) は y=2 に載り、secondary(2) は空列なので y=3 まで落ちる
-  assertEquals(game.board.get(1, 2)?.kind, "num");
-  assertEquals(game.board.get(1, 2)?.value, 1);
-  assertEquals(game.board.get(2, 3)?.kind, "num");
-  assertEquals(game.board.get(2, 3)?.value, 2);
-  assertEquals(game.board.get(2, 2), null);
+  assertEquals(game.getCell(1, 2)?.kind, "num");
+  assertEquals(game.getCell(1, 2)?.value, 1);
+  assertEquals(game.getCell(2, 3)?.kind, "num");
+  assertEquals(game.getCell(2, 3)?.value, 2);
+  assertEquals(game.getCell(2, 2), null);
 });
 
 Deno.test("onEvent: moved rotated locked cleared levelup gameover", () => {
@@ -199,7 +197,7 @@ Deno.test("onEvent: moved rotated locked cleared levelup gameover", () => {
   for (let i = 0; i < 10; i++) {
     const x = (i % 2) * 3;
     const y = 5 + Math.floor(i / 2);
-    game.board.placeBlocks([
+    game.seedBlocks([
       { x, y, block: num(5) },
       { x: x + 1, y, block: op("*") },
       { x: x + 2, y, block: num(5) },
@@ -231,12 +229,27 @@ Deno.test("onEvent: spawnNext gameover after fill", () => {
   });
   for (let y = 0; y < 10; y++) {
     for (let x = 0; x < 8; x++) {
-      game.board.placeBlocks([{ x, y, block: num(1) }]);
+      game.seedBlocks([{ x, y, block: num(1) }]);
     }
   }
   game.hardDrop();
   assert(game.isGameOver);
   assert(events.includes("gameover"));
+});
+
+Deno.test("seedBlocks / getCell / isDeadCell encapsulate board", () => {
+  const game = new Game(8, 10, {
+    current: pair(num(9), num(9)),
+    next: pair(num(9), num(9)),
+  });
+  game.seedBlocks([
+    { x: 3, y: 9, block: op("+") },
+    { x: 4, y: 9, block: op("-") },
+  ]);
+  assertEquals(game.getCell(3, 9)?.kind, "op");
+  assertEquals(game.isDeadCell(3, 9), true);
+  assertEquals(game.isDeadCell(4, 9), true);
+  assertEquals(game.getGrid()[9][3]?.kind, "op");
 });
 
 Deno.test("rotateCW blocked does not emit rotated", () => {

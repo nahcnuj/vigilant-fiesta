@@ -1,4 +1,4 @@
-﻿import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import {
   blockHue,
   blockLabel,
@@ -62,4 +62,15 @@ Deno.test("nextPreview は次ペア専用（pivot/secondary の表示情報）",
     pivot: { label: "2", hue: 230 },
     secondary: { label: "+", hue: 5 },
   });
+});
+
+Deno.test("paintList は注入した isDead で dead を付ける（formula 非依存）", () => {
+  const grid = [
+    [op("+"), null],
+    [null, null],
+  ];
+  const painted = paintList(grid, 10, [], (x, y) => x === 0 && y === 0);
+  assertEquals(painted, [
+    { x: 0, y: 0, w: 9, h: 9, hue: 5, label: "+", dead: true },
+  ]);
 });
