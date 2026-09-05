@@ -1,16 +1,15 @@
 import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
-import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
+import { blockHue, blockLabel, nextPreview } from "./renderer/layout.ts";
 import { audio } from "./audio.ts";
 import { isE2e } from "./e2e.ts";
-import { num, op, type Block } from "./piece.ts";
+import { type Block, num, op } from "./piece.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
 
 const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
-
 
 /** AdSense: enable retry after filled/unfilled or fallback timeout. */
 const AD_WAIT_FALLBACK_MS = 4000;
@@ -25,7 +24,9 @@ const screens = {
 const scoreEl = document.getElementById("score")!;
 const levelEl = document.getElementById("level")!;
 const resultScoreEl = document.getElementById("result-score")!;
-const resultBoardImg = document.getElementById("result-board") as HTMLImageElement | null;
+const resultBoardImg = document.getElementById("result-board") as
+  | HTMLImageElement
+  | null;
 const resultOverlay = document.getElementById("result-overlay")!;
 const nextPivotEl = document.getElementById("next-pivot")!;
 const nextSecondaryEl = document.getElementById("next-secondary")!;
@@ -54,7 +55,9 @@ function paintRuleExample(): void {
     const kind = el.dataset.kind;
     const raw = el.dataset.value;
     if (!kind || raw === undefined) continue;
-    const block: Block = kind === "num" ? num(Number(raw)) : op(raw as "+" | "-" | "*" | "/");
+    const block: Block = kind === "num"
+      ? num(Number(raw))
+      : op(raw as "+" | "-" | "*" | "/");
     el.textContent = blockLabel(block);
     el.style.background = blockFill(block);
   }
@@ -211,7 +214,6 @@ function destroyRenderer(): void {
   game = null;
 }
 
-
 function sendPlayEvent(): void {
   if (isE2e()) return;
   const w = globalThis as unknown as {
@@ -236,12 +238,24 @@ async function startPlay(): Promise<void> {
     ...gameOptionsFromUrl(),
     onEvent: (ev) => {
       switch (ev.type) {
-        case "moved": audio.playSe("move"); break;
-        case "rotated": audio.playSe("rotate"); break;
-        case "locked": audio.playSe("drop"); break;
-        case "cleared": audio.playSe("clear"); break;
-        case "levelup": audio.playSe("levelup"); break;
-        case "gameover": audio.playSe("gameover"); break;
+        case "moved":
+          audio.playSe("move");
+          break;
+        case "rotated":
+          audio.playSe("rotate");
+          break;
+        case "locked":
+          audio.playSe("drop");
+          break;
+        case "cleared":
+          audio.playSe("clear");
+          break;
+        case "levelup":
+          audio.playSe("levelup");
+          break;
+        case "gameover":
+          audio.playSe("gameover");
+          break;
       }
     },
   });
@@ -314,12 +328,14 @@ btnRetry.addEventListener("click", () => {
   void startPlay();
 });
 
-
 function initControlsCarousel(): void {
   const root = document.querySelector("[data-controls-carousel]");
   const track = document.querySelector("[data-controls-track]");
   const dotsHost = document.querySelector("[data-controls-dots]");
-  if (!(root instanceof HTMLElement) || !(track instanceof HTMLElement) || !(dotsHost instanceof HTMLElement)) {
+  if (
+    !(root instanceof HTMLElement) || !(track instanceof HTMLElement) ||
+    !(dotsHost instanceof HTMLElement)
+  ) {
     return;
   }
   const slides = [...track.querySelectorAll(".controls-slide")];
@@ -357,7 +373,9 @@ function initControlsCarousel(): void {
         dotsHost.appendChild(b);
       });
     }
-    const idx = Math.round(track.scrollLeft / Math.max(1, (slides[0] as HTMLElement).offsetWidth));
+    const idx = Math.round(
+      track.scrollLeft / Math.max(1, (slides[0] as HTMLElement).offsetWidth),
+    );
     [...dotsHost.children].forEach((el, i) => {
       el.setAttribute("aria-current", i === idx ? "true" : "false");
     });
@@ -375,12 +393,3 @@ btnRetry.disabled = true;
 requestAdsIn(adTitle);
 requestAdsIn(adSideLeft);
 requestAdsIn(adSideRight);
-
-
-
-
-
-
-
-
-

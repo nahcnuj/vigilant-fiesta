@@ -1,4 +1,4 @@
-﻿import type { Block, Operator, Digit } from "./piece.ts";
+import type { Block, Digit, Operator } from "./piece.ts";
 import type { Board } from "./board.ts";
 
 export interface FormulaMatch {
@@ -8,10 +8,14 @@ export interface FormulaMatch {
 
 function evalOp(a: Digit, op: Operator, b: Digit): number {
   switch (op) {
-    case "+": return a + b;
-    case "-": return a - b;
-    case "*": return a * b;
-    case "/": return Math.trunc((a / b) * 10) / 10;
+    case "+":
+      return a + b;
+    case "-":
+      return a - b;
+    case "*":
+      return a * b;
+    case "/":
+      return Math.trunc((a / b) * 10) / 10;
   }
 }
 
@@ -31,7 +35,14 @@ function scanAxis(
   cellAt: CellAt,
   outerMax: number,
   innerMax: number,
-  cellsFor: (outer: number, inner: number) => [{ x: number; y: number }, { x: number; y: number }, { x: number; y: number }],
+  cellsFor: (
+    outer: number,
+    inner: number,
+  ) => [
+    { x: number; y: number },
+    { x: number; y: number },
+    { x: number; y: number },
+  ],
 ): void {
   for (let outer = 0; outer < outerMax; outer++) {
     for (let inner = 0; inner + 2 < innerMax; inner++) {

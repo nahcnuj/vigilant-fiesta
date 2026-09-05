@@ -1,8 +1,14 @@
-import { assertEquals, assert } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import {
+  assert,
+  assertEquals,
+} from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { Game } from "./game.ts";
 import { FallingPair, num, op } from "./piece.ts";
 
-function pair(a: ReturnType<typeof num> | ReturnType<typeof op>, b: ReturnType<typeof num> | ReturnType<typeof op>) {
+function pair(
+  a: ReturnType<typeof num> | ReturnType<typeof op>,
+  b: ReturnType<typeof num> | ReturnType<typeof op>,
+) {
   return new FallingPair(a, b);
 }
 
@@ -24,7 +30,9 @@ Deno.test("接地すると盤に固定され next が current になる", () => 
   game.hardDrop();
   assertEquals(game.current.pivot, num(5));
   assertEquals(game.current.secondary, op("+"));
-  const filled = game.board.getGrid().some((row) => row.some((c) => c !== null));
+  const filled = game.board.getGrid().some((row) =>
+    row.some((c) => c !== null)
+  );
   assert(filled);
 });
 

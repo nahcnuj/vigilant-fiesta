@@ -15,10 +15,7 @@ export {
   type KeyboardSourceOptions,
 } from "./keyboard.ts";
 
-export {
-  createTouchPadSource,
-  type TouchPadOptions,
-} from "./touch.ts";
+export { createTouchPadSource, type TouchPadOptions } from "./touch.ts";
 
 import type { Game } from "../game.ts";
 import { createGameController } from "./controller.ts";

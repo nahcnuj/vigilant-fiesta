@@ -1,5 +1,5 @@
 import { Board } from "./board.ts";
-import { FallingPair, randomPair, type Block } from "./piece.ts";
+import { type Block, FallingPair, randomPair } from "./piece.ts";
 import { findFormulas, totalFormulaScore } from "./formula.ts";
 
 export interface Position {

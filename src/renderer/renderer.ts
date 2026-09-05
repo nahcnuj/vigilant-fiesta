@@ -77,7 +77,11 @@ export class Renderer {
   }
 
   /** PIXI Application typings from the CDN build omit ticker; access via Reflect. */
-  private ticker(): { add(fn: TickerFn): void; remove(fn: TickerFn): void; deltaMS: number } {
+  private ticker(): {
+    add(fn: TickerFn): void;
+    remove(fn: TickerFn): void;
+    deltaMS: number;
+  } {
     return Reflect.get(this.app, "ticker") as {
       add(fn: TickerFn): void;
       remove(fn: TickerFn): void;
@@ -142,7 +146,13 @@ export class Renderer {
       // Permanently unerasable blocks are drawn darker
       const lightness = r.dead ? 22 : 45;
       const saturation = r.dead ? 35 : 70;
-      this.graphics.beginFill(new (PIXI.Color as any)({ h: r.hue, s: saturation, l: lightness }) as any);
+      this.graphics.beginFill(
+        new (PIXI.Color as any)({
+          h: r.hue,
+          s: saturation,
+          l: lightness,
+        }) as any,
+      );
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
       const text = new PIXI.Text(r.label, {
