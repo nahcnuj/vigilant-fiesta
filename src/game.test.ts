@@ -151,16 +151,19 @@ Deno.test("コンストラクタで rng を渡せる", () => {
 
 Deno.test("水平向きのハードドロップ後、片方は下まで落ちる", () => {
   // 左列だけ床があり、右列は空 → 横向きで着地すると右が浮くので重力で落とす
+  // orientation 3 は secondary が右。spawn 付近では上向き回転が場外になるため、
+  // 向きと位置は GameOptions で初期化する（公開 setter は持たない）。
+  const current = new FallingPair(num(1), num(2));
+  current.rotateCW();
+  current.rotateCW();
+  current.rotateCW();
   const game = new Game(4, 4, {
-    current: new FallingPair(num(1), num(2)),
+    current,
     next: new FallingPair(num(3), num(4)),
+    position: { x: 1, y: 0 },
   });
-  // orientation 3: secondary が pivot の右
-  game.current.rotateCW();
-  game.current.rotateCW();
-  game.current.rotateCW();
   assertEquals(game.current.orientation, 3);
-  game.position = { x: 1, y: 0 };
+  assertEquals(game.position.x, 1);
   // 左下に障害（pivot側の列を埋める）
   game.board.placeBlocks([{ x: 1, y: 3, block: num(9) }]);
   game.hardDrop();

@@ -3,6 +3,7 @@ import { Renderer } from "./renderer/index.ts";
 import { setupInput } from "./input/index.ts";
 import { nextPreview, blockHue, blockLabel } from "./renderer/layout.ts";
 import { audio } from "./audio.ts";
+import { isE2e } from "./e2e.ts";
 import { num, op, type Block } from "./piece.ts";
 
 const WIDTH = 8;
@@ -61,11 +62,6 @@ function paintRuleExample(): void {
 
 let adWaitToken = 0;
 
-function isE2e(): boolean {
-  const params = new URLSearchParams(globalThis.location?.search ?? "");
-  return params.get("e2e") === "1";
-}
-
 function e2eRng(): number {
   return 0.5;
 }
@@ -98,9 +94,9 @@ function updateHud(): void {
   levelEl.textContent = `Level: ${game.level}`;
   const preview = nextPreview(game.next);
   nextPivotEl.textContent = preview.pivot.label;
-  nextPivotEl.style.background = `hsl(${preview.pivot.hue} 70% 45%)`;
+  nextPivotEl.style.background = blockFill(game.next.pivot);
   nextSecondaryEl.textContent = preview.secondary.label;
-  nextSecondaryEl.style.background = `hsl(${preview.secondary.hue} 70% 45%)`;
+  nextSecondaryEl.style.background = blockFill(game.next.secondary);
 }
 
 function activeCells() {
@@ -110,7 +106,7 @@ function activeCells() {
 
 function paint(): void {
   if (!game || !renderer) return;
-  renderer.render(game.board.getGrid(), activeCells(), game.board);
+  renderer.render(game.board, activeCells());
   updateHud();
 }
 
@@ -201,7 +197,7 @@ function stopPlayLoop(): void {
     detachInput = null;
   }
   if (renderer && tickerFn) {
-    Reflect.apply(Reflect.get(Reflect.get(renderer.app, "ticker"), "remove"), Reflect.get(renderer.app, "ticker"), [tickerFn]);
+    renderer.removeTicker(tickerFn);
     tickerFn = null;
   }
   dropAccMs = 0;
@@ -209,9 +205,7 @@ function stopPlayLoop(): void {
 
 function destroyRenderer(): void {
   if (renderer) {
-    const view = renderer.app.view as HTMLElement | null;
-    view?.parentElement?.removeChild(view);
-    renderer.app.destroy(true);
+    renderer.destroy();
     renderer = null;
   }
   game = null;
@@ -269,7 +263,7 @@ async function startPlay(): Promise<void> {
       endPlay();
       return;
     }
-    dropAccMs += Reflect.get(Reflect.get(renderer.app, "ticker"), "deltaMS") as number;
+    dropAccMs += renderer.deltaMS;
     const interval = dropIntervalMs(game.level);
     while (dropAccMs >= interval) {
       dropAccMs -= interval;
@@ -279,42 +273,19 @@ async function startPlay(): Promise<void> {
     paint();
     if (game.isGameOver) endPlay();
   };
-  Reflect.apply(Reflect.get(Reflect.get(renderer.app, "ticker"), "add"), Reflect.get(renderer.app, "ticker"), [tickerFn]);
+  renderer.addTicker(tickerFn);
 }
 
-
-function captureBoardThumbnail(maxWidth = 160): string | null {
-  if (!renderer) return null;
-  const app = renderer.app;
-  app.renderer.render(app.stage);
-  const src = app.view as HTMLCanvasElement;
-  if (!src || src.width < 1) return null;
-  const scale = Math.min(1, maxWidth / src.width);
-  const w = Math.max(1, Math.round(src.width * scale));
-  const h = Math.max(1, Math.round(src.height * scale));
-  const tmp = document.createElement("canvas");
-  tmp.width = w;
-  tmp.height = h;
-  const ctx = tmp.getContext("2d");
-  if (!ctx) return null;
-  ctx.imageSmoothingEnabled = false;
-  ctx.drawImage(src, 0, 0, w, h);
-  try {
-    return tmp.toDataURL("image/png");
-  } catch {
-    return null;
-  }
-}
 function endPlay(): void {
   audio.stopBgm();
   const finalScore = game?.score ?? 0;
   stopPlayLoop();
   // Keep renderer + final board visible under overlay
   if (game && renderer) {
-    renderer.render(game.board.getGrid(), [], game.board);
+    renderer.render(game.board, []);
     updateHud();
   }
-  const thumb = captureBoardThumbnail(160);
+  const thumb = renderer?.snapshotDataURL(160) ?? null;
   if (resultBoardImg) {
     if (thumb) {
       resultBoardImg.src = thumb;

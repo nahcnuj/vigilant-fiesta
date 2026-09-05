@@ -1,14 +1,16 @@
-﻿import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
-import type { Cell } from "../board.ts";
+import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
+import type { Board } from "../board.ts";
 import type { Block } from "../piece.ts";
 import { canvasCellSize, paintList } from "./layout.ts";
 
-/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the line 遶翫・risk of game over. */
+/** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the danger line risk game over. */
 const SPAWN_ROWS = 2;
 const DANGER_LINE_ROW = 1;
 
+export type TickerFn = () => void;
+
 export class Renderer {
-  readonly app: InstanceType<typeof PIXI.Application>;
+  private readonly app: InstanceType<typeof PIXI.Application>;
   private cellSize: number;
   private guides: InstanceType<typeof PIXI.Graphics>;
   private graphics: InstanceType<typeof PIXI.Graphics>;
@@ -74,14 +76,68 @@ export class Renderer {
     else console.warn(`Renderer: element #${elementId} not found`);
   }
 
+  /** PIXI Application typings from the CDN build omit ticker; access via Reflect. */
+  private ticker(): { add(fn: TickerFn): void; remove(fn: TickerFn): void; deltaMS: number } {
+    return Reflect.get(this.app, "ticker") as {
+      add(fn: TickerFn): void;
+      remove(fn: TickerFn): void;
+      deltaMS: number;
+    };
+  }
+
+  addTicker(fn: TickerFn): void {
+    this.ticker().add(fn);
+  }
+
+  removeTicker(fn: TickerFn): void {
+    this.ticker().remove(fn);
+  }
+
+  /** Milliseconds since last ticker frame (PIXI ticker). */
+  get deltaMS(): number {
+    return this.ticker().deltaMS;
+  }
+
+  /** Detach canvas from DOM and destroy the PIXI application. */
+  destroy(): void {
+    const view = this.app.view as HTMLElement | null;
+    view?.parentElement?.removeChild(view);
+    this.app.destroy(true);
+  }
+
+  /**
+   * Capture the current board view as a PNG data URL (result thumbnail).
+   * Returns null if the canvas is unavailable or tainted.
+   */
+  snapshotDataURL(maxWidth = 160): string | null {
+    this.app.renderer.render(this.app.stage);
+    const src = this.app.view as HTMLCanvasElement;
+    if (!src || src.width < 1) return null;
+    const scale = Math.min(1, maxWidth / src.width);
+    const w = Math.max(1, Math.round(src.width * scale));
+    const h = Math.max(1, Math.round(src.height * scale));
+    const tmp = document.createElement("canvas");
+    tmp.width = w;
+    tmp.height = h;
+    const ctx = tmp.getContext("2d");
+    if (!ctx) return null;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(src, 0, 0, w, h);
+    try {
+      return tmp.toDataURL("image/png");
+    } catch {
+      return null;
+    }
+  }
+
   render(
-    grid: Cell[][],
+    board: Board,
     active: { x: number; y: number; block: Block }[] = [],
-    board?: import("../board.ts").Board,
   ) {
     this.graphics.clear();
     this.labels.removeChildren();
     const fontSize = Math.max(12, Math.floor(this.cellSize * 0.45));
+    const grid = board.getGrid();
     for (const r of paintList(grid, this.cellSize, active, board)) {
       // Permanently unerasable blocks are drawn darker
       const lightness = r.dead ? 22 : 45;
@@ -103,18 +159,3 @@ export class Renderer {
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

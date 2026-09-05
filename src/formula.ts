@@ -23,45 +23,52 @@ function isOp(c: Block | null): c is { kind: "op"; value: Operator } {
   return c !== null && c.kind === "op";
 }
 
+type CellAt = (x: number, y: number) => Block | null;
+
+/** Scan one axis of triples: digit · op · digit. */
+function scanAxis(
+  matches: FormulaMatch[],
+  cellAt: CellAt,
+  outerMax: number,
+  innerMax: number,
+  cellsFor: (outer: number, inner: number) => [{ x: number; y: number }, { x: number; y: number }, { x: number; y: number }],
+): void {
+  for (let outer = 0; outer < outerMax; outer++) {
+    for (let inner = 0; inner + 2 < innerMax; inner++) {
+      const [c0, c1, c2] = cellsFor(outer, inner);
+      const a = cellAt(c0.x, c0.y);
+      const o = cellAt(c1.x, c1.y);
+      const b = cellAt(c2.x, c2.y);
+      if (isNum(a) && isOp(o) && isNum(b)) {
+        const result = evalOp(a.value, o.value, b.value);
+        if (!Number.isNaN(result)) {
+          matches.push({ cells: [c0, c1, c2], result });
+        }
+      }
+    }
+  }
+}
+
 export function findFormulas(board: Board): FormulaMatch[] {
   const matches: FormulaMatch[] = [];
   const grid = board.getGrid();
   const h = board.height;
   const w = board.width;
+  const cellAt: CellAt = (x, y) => grid[y][x];
 
-  for (let y = 0; y < h; y++) {
-    for (let x = 0; x + 2 < w; x++) {
-      const a = grid[y][x];
-      const o = grid[y][x + 1];
-      const b = grid[y][x + 2];
-      if (isNum(a) && isOp(o) && isNum(b)) {
-        const result = evalOp(a.value, o.value, b.value);
-        if (!Number.isNaN(result)) {
-          matches.push({
-            cells: [{ x, y }, { x: x + 1, y }, { x: x + 2, y }],
-            result,
-          });
-        }
-      }
-    }
-  }
+  // Horizontal: outer = row y, inner = column x
+  scanAxis(matches, cellAt, h, w, (y, x) => [
+    { x, y },
+    { x: x + 1, y },
+    { x: x + 2, y },
+  ]);
 
-  for (let x = 0; x < w; x++) {
-    for (let y = 0; y + 2 < h; y++) {
-      const a = grid[y][x];
-      const o = grid[y + 1][x];
-      const b = grid[y + 2][x];
-      if (isNum(a) && isOp(o) && isNum(b)) {
-        const result = evalOp(a.value, o.value, b.value);
-        if (!Number.isNaN(result)) {
-          matches.push({
-            cells: [{ x, y }, { x, y: y + 1 }, { x, y: y + 2 }],
-            result,
-          });
-        }
-      }
-    }
-  }
+  // Vertical: outer = column x, inner = row y
+  scanAxis(matches, cellAt, w, h, (x, y) => [
+    { x, y },
+    { x, y: y + 1 },
+    { x, y: y + 2 },
+  ]);
 
   return matches;
 }

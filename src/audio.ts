@@ -1,5 +1,7 @@
 ﻿/** Web Audio API only SE/BGM (no external assets). */
 
+import { isE2e } from "./e2e.ts";
+
 export type SeId =
   | "move"
   | "rotate"
@@ -57,14 +59,6 @@ export interface StorageLike {
   setItem(key: string, value: string): void;
 }
 
-function isE2e(): boolean {
-  const loc = globalThis.location;
-  const search =
-    typeof loc === "object" && loc !== null
-      ? String((loc as { search?: string }).search ?? "")
-      : "";
-  return new URLSearchParams(search).get("e2e") === "1";
-}
 
 function defaultCreateContext(): AudioContextLike | null {
   const g = globalThis as unknown as {
