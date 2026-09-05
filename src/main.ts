@@ -220,7 +220,26 @@ function endPlay(): void {
       resultBoardImg.hidden = true;
     }
   }
-  resultScoreEl.textContent = `Score: ${finalScore}`;
+  const shareUrl = location.href;
+  // Update result score text in Japanese with two decimal places
+  resultScoreEl.textContent = `スコアは ${finalScore.toFixed(2)}でした。`;
+  // Populate social share buttons
+  const shareContainer = document.getElementById('share-buttons')!;
+  shareContainer.innerHTML = '';
+  const platforms = [
+    { name: 'X', url: `https://x.com/intent/tweet?text=${encodeURIComponent(`スコアは ${finalScore.toFixed(2)} ${shareUrl}`)}` },
+    { name: 'LINE', url: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}` },
+    // Add more platforms as needed
+  ];
+  platforms.forEach(p => {
+    const a = document.createElement('a');
+    a.className = 'share-button';
+    a.textContent = p.name;
+    a.href = p.url;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    shareContainer.appendChild(a);
+  });
   document.title = `Score: ${finalScore} | ${DEFAULT_PAGE_TITLE}`;
   btnRetry.disabled = true;
   setResultOverlayVisible(true);
