@@ -471,3 +471,26 @@ button:disabled {
   .ad-side { display: flex !important; width: 160px; min-height: 600px; aspect-ratio: auto; margin: 0; flex-shrink: 0; position: sticky; top: 1rem; }
   .ad-side[hidden] { display: flex !important; }
 }
+
+/* Share buttons */
+.share-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  justify-content: center;
+}
+
+.share-button {
+  background: #4a90e2;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+.result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
