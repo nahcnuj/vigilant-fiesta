@@ -471,3 +471,109 @@ button:disabled {
   .ad-side { display: flex !important; width: 160px; min-height: 600px; aspect-ratio: auto; margin: 0; flex-shrink: 0; position: sticky; top: 1rem; }
   .ad-side[hidden] { display: flex !important; }
 }
+
+/* Result layout improvements (Issue #46) */
+.result-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 24rem);
+  min-height: min(90vh, 520px);
+  padding: 1.25rem 1.25rem 1rem;
+}
+
+.result-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0.5rem 0 1rem;
+  width: 100%;
+}
+
+.score-retry {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.score-retry #btn-retry {
+  margin: 0;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.95rem;
+}
+
+/* Share buttons */
+.share-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.share-button {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s, border-color 0.2s;
+  user-select: none;
+}
+
+.share-button:hover {
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.share-button.share-x {
+  background: #000;
+  border-color: #333;
+}
+.share-button.share-x:hover {
+  background: #1a1a1a;
+}
+
+.share-button.share-line {
+  background: #06c755;
+  border-color: #06c755;
+}
+.share-button.share-line:hover {
+  background: #05b04b;
+}
+
+.share-button.share-instagram {
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  border: none;
+}
+.share-button.share-instagram:hover {
+  opacity: 0.92;
+}
+
+.share-button.share-native {
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 1.05rem;
+}
+
+/* Bottom half ad area */
+#ad-result.ad-slot {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 180px;
+  margin: 0.5rem 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: auto;
+}

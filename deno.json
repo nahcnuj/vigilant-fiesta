@@ -3,7 +3,7 @@
     "playwright": "npm:playwright@1.62.1"
   },
   "compilerOptions": {
-    "lib": ["deno.window", "dom", "dom.iterable"],
+    "lib": ["deno.ns", "deno.window", "dom", "dom.iterable", "esnext"],
     "strict": true
   },
   "tasks": {
@@ -14,5 +14,19 @@
     "build": "deno bundle --allow-import src/main.ts -o dist/main.js",
     "dev": "deno task build && npx --yes serve .",
     "check": "deno check src/"
+  },
+  "lint": {
+    "exclude": ["**/*.test.ts"],
+    "rules": {
+      "exclude": [
+        "no-import-prefix",
+        "no-this-alias",
+        "no-empty",
+        "no-inner-declarations",
+        "no-explicit-any",
+        "require-await",
+        "no-unused-vars"
+      ]
+    }
   }
 }

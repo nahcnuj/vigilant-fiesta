@@ -8,6 +8,7 @@ import { isE2e } from "./e2e.ts";
 import { createAdWaiter, requestAdsIn } from "./ads.ts";
 import { sendPlayEvent } from "./analytics.ts";
 import { initControlsCarousel } from "./controls-carousel.ts";
+import { renderShareButtons } from "./social-share.ts";
 import { type Block, num, op } from "./piece.ts";
 
 const WIDTH = 8;
@@ -220,7 +221,16 @@ function endPlay(): void {
       resultBoardImg.hidden = true;
     }
   }
+  const shareUrl = location.href;
   resultScoreEl.textContent = `Score: ${finalScore}`;
+  const shareContainer = document.getElementById("share-buttons");
+  if (shareContainer) {
+    renderShareButtons(shareContainer, {
+      score: finalScore,
+      url: shareUrl,
+      imageDataUrl: thumb,
+    });
+  }
   document.title = `Score: ${finalScore} | ${DEFAULT_PAGE_TITLE}`;
   btnRetry.disabled = true;
   setResultOverlayVisible(true);

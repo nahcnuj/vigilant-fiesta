@@ -99,7 +99,11 @@
           <h2>ゲームオーバー</h2>
           <div class="result-summary">
             <img id="result-board" class="result-board" alt="最終盤面" width="120" height="150" />
-            <p id="result-score">Score: 0</p>
+            <div class="score-retry">
+              <p id="result-score">Score: 0</p>
+              <button type="button" id="btn-retry" disabled>もう一度</button>
+            </div>
+            <div id="share-buttons" class="share-buttons"></div>
           </div>
           <div class="ad-slot" id="ad-result" aria-label="広告">
             <ins class="adsbygoogle"
@@ -109,7 +113,6 @@
                  data-ad-format="auto"
                  data-full-width-responsive="true"></ins>
           </div>
-          <button type="button" id="btn-retry" disabled>もう一度</button>
         </div>
       </div>
     </section>
