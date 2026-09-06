@@ -8,6 +8,7 @@ import { isE2e } from "./e2e.ts";
 import { createAdWaiter, requestAdsIn } from "./ads.ts";
 import { sendPlayEvent } from "./analytics.ts";
 import { initControlsCarousel } from "./controls-carousel.ts";
+import { renderShareButtons } from "./social-share.ts";
 import { type Block, num, op } from "./piece.ts";
 
 const WIDTH = 8;
@@ -222,23 +223,14 @@ function endPlay(): void {
   }
   const shareUrl = location.href;
   resultScoreEl.textContent = `Score: ${finalScore}`;
-  // Populate social share buttons
-  const shareContainer = document.getElementById('share-buttons')!;
-  shareContainer.innerHTML = '';
-  const platforms = [
-    { name: 'X', url: `https://x.com/intent/tweet?text=${encodeURIComponent(`スコアは ${finalScore.toFixed(2)} ${shareUrl}`)}` },
-    { name: 'LINE', url: `https://social-plugins.line.me/lineit/share?url=${encodeURIComponent(shareUrl)}` },
-    // Add more platforms as needed
-  ];
-  platforms.forEach(p => {
-    const a = document.createElement('a');
-    a.className = 'share-button';
-    a.textContent = p.name;
-    a.href = p.url;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    shareContainer.appendChild(a);
-  });
+  const shareContainer = document.getElementById("share-buttons");
+  if (shareContainer) {
+    renderShareButtons(shareContainer, {
+      score: finalScore,
+      url: shareUrl,
+      imageDataUrl: thumb,
+    });
+  }
   document.title = `Score: ${finalScore} | ${DEFAULT_PAGE_TITLE}`;
   btnRetry.disabled = true;
   setResultOverlayVisible(true);
