@@ -221,8 +221,7 @@ function endPlay(): void {
     }
   }
   const shareUrl = location.href;
-  // Update result score text in Japanese with two decimal places
-  resultScoreEl.textContent = `スコアは ${finalScore.toFixed(2)}でした。`;
+  resultScoreEl.textContent = `Score: ${finalScore}`;
   // Populate social share buttons
   const shareContainer = document.getElementById('share-buttons')!;
   shareContainer.innerHTML = '';
