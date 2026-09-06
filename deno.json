@@ -12,5 +12,8 @@
         "no-unused-vars"
       ]
     }
+  },
+  "compilerOptions": {
+    "lib": ["deno.ns", "dom", "dom.iterable", "esnext"]
   }
 }
