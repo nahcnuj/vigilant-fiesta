@@ -1,6 +1,6 @@
 {
   "imports": {
-    "playwright": "npm:playwright@1.62.1"
+    "playwright": "npm:playwright@1.63.0"
   },
   "compilerOptions": {
     "lib": ["deno.ns", "deno.window", "dom", "dom.iterable", "esnext"],
