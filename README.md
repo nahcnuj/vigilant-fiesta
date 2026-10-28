@@ -1,10 +1,10 @@
 # mat(c)h-three-game
 
-[落ち物パズルゲーム](https://www.nahcnuj.work/works/2013/01_ochimono.html) を Web アプリとしてリメイク。
+上から降ってくる数字と記号のブロックを、数式の形に並べてできた式の答えをスコアとして加算し続けるゲーム。
 
-上から降る数字と記号のブロックを数式の形に並べ、計算結果をスコアに加算される。
+2013年制作のWindowsアプリケーション『[落ち物パズルゲーム](https://www.nahcnuj.work/works/2013/01_ochimono.html)』をリメイクした。
 
-## Demo
+## Build
 
 ```bash
 deno task build
