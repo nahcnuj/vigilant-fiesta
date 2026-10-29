@@ -1,5 +1,5 @@
 <div align="center">
-<h1><img width="584" height="292" alt="Mathch-Three" src="https://github.com/user-attachments/assets/2a127bc1-f4cf-46a1-aa44-92efc5355443" title="Mathch-Three" /></h1>
+<h1><a href="https://www.nahcnuj.work/vigilant-fiesta/" target="_blank" rel="noopener"><img width="584" height="292" alt="Mathch-Three" src="https://github.com/user-attachments/assets/2a127bc1-f4cf-46a1-aa44-92efc5355443" title="Mathch-Three" /></a></h1>
 <h2><a href="https://www.nahcnuj.work/vigilant-fiesta/" target="_blank" rel="noopener">Click Here to Play</a></h2>
 
 Match-three game meets Mathematics!
