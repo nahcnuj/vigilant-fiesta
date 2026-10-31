@@ -6,7 +6,7 @@ import { blockFillCss } from "./renderer/fill.ts";
 import { audio } from "./audio.ts";
 import { isE2e } from "./e2e.ts";
 import { createAdWaiter, requestAdsIn } from "./ads.ts";
-import { sendPlayEvent } from "./analytics.ts";
+import { sendPlayEvent, sendXEvent } from "./analytics.ts";
 import { initControlsCarousel } from "./controls-carousel.ts";
 import { renderShareButtons } from "./social-share.ts";
 import { type Block, num, op } from "./piece.ts";
@@ -138,6 +138,7 @@ async function startPlay(): Promise<void> {
   await audio.unlock();
   audio.playSe("ui");
   sendPlayEvent();
+  sendXEvent();
 
   document.title = DEFAULT_PAGE_TITLE;
   adWaiter.cancelPending();
