@@ -14,7 +14,7 @@ import { type Block, num, op } from "./piece.ts";
 const WIDTH = 8;
 const HEIGHT = 10;
 
-const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
+const DEFAULT_PAGE_TITLE = "Mathch-Three";
 
 type ScreenId = "title" | "playing";
 
@@ -138,7 +138,6 @@ async function startPlay(): Promise<void> {
   await audio.unlock();
   audio.playSe("ui");
   sendPlayEvent();
-  sendXEvent();
 
   document.title = DEFAULT_PAGE_TITLE;
   adWaiter.cancelPending();
@@ -208,6 +207,7 @@ function endPlay(): void {
   audio.stopBgm();
   const finalScore = game?.score ?? 0;
   stopPlayLoop();
+  sendXEvent(finalScore);
   if (game && renderer) {
     renderer.render(game, []);
     updateHud();

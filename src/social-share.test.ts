@@ -5,7 +5,7 @@ Deno.test("buildShareText formats score to two decimal places with URL and hasht
   const text = buildShareText(123.456, "https://example.com/");
   assertEquals(
     text,
-    "スコアは 123.46 でした。 https://example.com/ #落ち物パズルゲーム・蘇",
+    "スコアは 123.46 でした。 https://example.com/ #Mathch-Three",
   );
 });
 
@@ -13,7 +13,7 @@ Deno.test("buildShareText formats integer score to two decimal places", () => {
   const text = buildShareText(0, "https://example.com/");
   assertEquals(
     text,
-    "スコアは 0.00 でした。 https://example.com/ #落ち物パズルゲーム・蘇",
+    "スコアは 0.00 でした。 https://example.com/ #Mathch-Three",
   );
 });
 
