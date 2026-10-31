@@ -2,7 +2,7 @@
  * Social sharing module for game results (Issue #46).
  */
 
-export const HASHTAG = "#Mathch-Three";
+export const HASHTAG = "#MathchThree";
 
 export function buildShareText(score: number, url: string): string {
   return `スコアは ${score.toFixed(2)} でした。 ${url} ${HASHTAG}`;
