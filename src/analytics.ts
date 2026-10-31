@@ -16,8 +16,8 @@ type TwqWindow = {
 };
 
 /** Fire an X (Twitter) conversion event when a session starts (skipped under ?e2e=1). */
-export function sendXEvent(): void {
+export function sendXEvent(score: number): void {
   if (isE2e()) return;
   const w = globalThis as unknown as TwqWindow;
-  w.twq?.("event", "tw-ov0j6-ri9jk", { value: 5.0, currency: "USD" });
+  w.twq?.("event", "tw-ov0j6-ri9jk", { value: Max(0.0160, score/10000), currency: "USD" });
 }
