@@ -19,5 +19,5 @@ type TwqWindow = {
 export function sendXEvent(score: number): void {
   if (isE2e()) return;
   const w = globalThis as unknown as TwqWindow;
-  w.twq?.("event", "tw-ov0j6-ri9jk", { value: Math.max(0.0160, score/10000), currency: "USD" });
+  w.twq?.("event", "tw-ov0j6-ri9jk", { value: Math.max(1/200, score/10000), currency: "USD" });
 }
