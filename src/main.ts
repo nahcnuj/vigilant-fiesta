@@ -14,7 +14,7 @@ import { type Block, num, op } from "./piece.ts";
 const WIDTH = 8;
 const HEIGHT = 10;
 
-const DEFAULT_PAGE_TITLE = "落ち物パズルゲーム・蘇";
+const DEFAULT_PAGE_TITLE = "Mathch-Three";
 
 type ScreenId = "title" | "playing";
 

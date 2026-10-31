@@ -2,7 +2,7 @@
  * Social sharing module for game results (Issue #46).
  */
 
-export const HASHTAG = "#落ち物パズルゲーム・蘇";
+export const HASHTAG = "#MathchThree";
 
 export function buildShareText(score: number, url: string): string {
   return `スコアは ${score.toFixed(2)} でした。 ${url} ${HASHTAG}`;
@@ -105,7 +105,7 @@ export function renderShareButtons(
   nativeBtn.addEventListener("click", async () => {
     if (typeof navigator !== "undefined" && typeof navigator.share === "function") {
       const shareData: ShareData = {
-        title: "落ち物パズルゲーム・蘇",
+        title: "Mathch-Three",
         text: shareText,
         url: options.url,
       };
