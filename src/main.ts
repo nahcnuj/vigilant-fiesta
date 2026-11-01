@@ -10,6 +10,7 @@ import { sendPlayEvent, sendXEvent } from "./analytics.ts";
 import { initControlsCarousel } from "./controls-carousel.ts";
 import { renderShareButtons } from "./social-share.ts";
 import { type Block, num, op } from "./piece.ts";
+import { advanceDrop, dropIntervalMs } from "./loop.ts";
 
 const WIDTH = 8;
 const HEIGHT = 10;
@@ -75,10 +76,6 @@ function gameOptionsFromUrl(): GameOptions {
   return {};
 }
 
-function dropIntervalMs(level: number): number {
-  return Math.max(120, 700 - (level - 1) * 50);
-}
-
 function showScreen(id: ScreenId): void {
   for (const [key, el] of Object.entries(screens)) {
     const active = key === id;
@@ -126,11 +123,7 @@ function stopPlayLoop(): void {
   dropAccMs = 0;
 }
 
-function destroyRenderer(): void {
-  if (renderer) {
-    renderer.destroy();
-    renderer = null;
-  }
+function resetGame(): void {
   game = null;
 }
 
@@ -144,9 +137,13 @@ async function startPlay(): Promise<void> {
   btnRetry.disabled = true;
   setResultOverlayVisible(false);
   stopPlayLoop();
-  destroyRenderer();
+  resetGame();
 
   showScreen("playing");
+  if (!renderer) {
+    renderer = new Renderer(WIDTH, HEIGHT);
+    renderer.attachTo("game-container");
+  }
   game = new Game(WIDTH, HEIGHT, {
     ...gameOptionsFromUrl(),
     onEvent: (ev) => {
@@ -172,8 +169,6 @@ async function startPlay(): Promise<void> {
       }
     },
   });
-  renderer = new Renderer(WIDTH, HEIGHT);
-  renderer.attachTo("game-container");
   detachInput = setupInput(game);
   dropAccMs = 0;
   paint();
@@ -190,10 +185,13 @@ async function startPlay(): Promise<void> {
       endPlay();
       return;
     }
-    dropAccMs += renderer.deltaMS;
-    const interval = dropIntervalMs(game.level);
-    while (dropAccMs >= interval) {
-      dropAccMs -= interval;
+    const advance = advanceDrop(
+      dropAccMs,
+      renderer.deltaMS,
+      dropIntervalMs(game.level),
+    );
+    dropAccMs = advance.remainderMs;
+    for (let i = 0; i < advance.ticks; i++) {
       game.tick();
       if (game.isGameOver) break;
     }
