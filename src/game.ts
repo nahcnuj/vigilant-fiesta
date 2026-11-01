@@ -169,8 +169,9 @@ export class Game {
       this.emitGameOver();
       return;
     }
-    while (this.tryMove(0, 1)) {
-      /* drop */
+    let dropGuard = 0;
+    while (dropGuard < this.height + 2 && this.tryMove(0, 1)) {
+      dropGuard++;
     }
     this.lockAndResolve();
   }
@@ -185,7 +186,11 @@ export class Game {
 
   /** Clear formulas, apply gravity, repeat until stable; update score/level. */
   private resolveFormulas(): void {
+    const maxTimeMs = 200;
+    const startTime = performance.now();
     for (let guard = 0; guard < 50; guard++) {
+      const elapsed = performance.now() - startTime;
+      if (elapsed > maxTimeMs) break;
       const matches = findFormulas(this.#board);
       if (matches.length === 0) break;
       const delta = totalFormulaScore(matches);
@@ -200,6 +205,7 @@ export class Game {
       for (const m of matches) {
         for (const c of m.cells) cleared.set(`${c.x},${c.y}`, c);
       }
+      if (cleared.size === 0) break;
       this.#board.clearCells([...cleared.values()]);
       this.#board.applyGravity();
     }

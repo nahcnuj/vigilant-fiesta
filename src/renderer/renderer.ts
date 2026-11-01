@@ -10,6 +10,7 @@ import {
   hslToRgbInt,
 } from "./fill.ts";
 import { appTicker, setLineStyle, setXy } from "./pixi-surface.ts";
+import { disposeChildren, syncPool, type PoolNode } from "./labels.ts";
 
 /** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the danger line risk game over. */
 const SPAWN_ROWS = 2;
@@ -29,6 +30,7 @@ export class Renderer {
   private guides: InstanceType<typeof PIXI.Graphics>;
   private graphics: InstanceType<typeof PIXI.Graphics>;
   private labels: InstanceType<typeof PIXI.Container>;
+  private texts: InstanceType<typeof PIXI.Text>[] = [];
 
   constructor(private width: number, private height: number) {
     this.cellSize = canvasCellSize(this.width, this.height);
@@ -98,6 +100,8 @@ export class Renderer {
 
   /** Detach canvas from DOM and destroy the PIXI application. */
   destroy(): void {
+    disposeChildren(this.labels);
+    this.texts = [];
     const view = this.app.view as HTMLElement | null;
     view?.parentElement?.removeChild(view);
     this.app.destroy(true);
@@ -133,26 +137,38 @@ export class Renderer {
     active: { x: number; y: number; block: Block }[] = [],
   ) {
     this.graphics.clear();
-    this.labels.removeChildren();
     const fontSize = Math.max(12, Math.floor(this.cellSize * 0.45));
     const grid = board.getGrid();
     const isDead = (x: number, y: number) => board.isDeadCell(x, y);
-    for (const r of paintList(grid, this.cellSize, active, isDead)) {
+    const rects = paintList(grid, this.cellSize, active, isDead);
+    this.texts = syncPool(
+      this.texts as unknown as PoolNode[],
+      rects.length,
+      () => {
+        const text = new PIXI.Text("", {
+          fontFamily: "system-ui, sans-serif",
+          fontSize,
+          fontWeight: "700",
+          fill: 0xffffff,
+          align: "center",
+        });
+        text.anchor.set(0.5);
+        this.labels.addChild(text);
+        return text as unknown as PoolNode;
+      },
+    ) as unknown as InstanceType<typeof PIXI.Text>[];
+    for (let i = 0; i < rects.length; i++) {
+      const r = rects[i];
       const lightness = r.dead ? FILL_DEAD_LIGHTNESS : FILL_LIGHTNESS;
       const saturation = r.dead ? FILL_DEAD_SATURATION : FILL_SATURATION;
       this.graphics.beginFill(hslToRgbInt(r.hue, saturation, lightness));
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
-      const text = new PIXI.Text(r.label, {
-        fontFamily: "system-ui, sans-serif",
-        fontSize,
-        fontWeight: "700",
-        fill: r.dead ? 0x888888 : 0xffffff,
-        align: "center",
-      });
-      text.anchor.set(0.5);
+      const text = this.texts[i];
+      text.text = r.label;
+      text.style.fontSize = fontSize;
+      text.style.fill = r.dead ? 0x888888 : 0xffffff;
       setXy(text, r.x + r.w / 2, r.y + r.h / 2);
-      this.labels.addChild(text);
     }
   }
 }

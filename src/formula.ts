@@ -52,7 +52,7 @@ function scanAxis(
       const b = cellAt(c2.x, c2.y);
       if (isNum(a) && isOp(o) && isNum(b)) {
         const result = evalOp(a.value, o.value, b.value);
-        if (!Number.isNaN(result)) {
+        if (Number.isFinite(result)) {
           matches.push({ cells: [c0, c1, c2], result });
         }
       }
@@ -100,12 +100,11 @@ export function isPermanentlyUnclearable(
 ): boolean {
   if (y !== board.height - 1) return false;
 
-  const grid = board.getGrid();
-  const cell = grid[y][x];
+  const cell = board.get(x, y);
   if (cell === null || cell.kind !== "op") return false;
 
-  const left = x > 0 ? grid[y][x - 1] : null;
-  const right = x < board.width - 1 ? grid[y][x + 1] : null;
+  const left = x > 0 ? board.get(x - 1, y) : null;
+  const right = x < board.width - 1 ? board.get(x + 1, y) : null;
 
   // 数字になれるか？（空き or すでに数字）
   const leftOk = left === null || left.kind === "num";
