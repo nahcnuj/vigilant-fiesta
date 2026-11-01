@@ -10,7 +10,7 @@ import {
   hslToRgbInt,
 } from "./fill.ts";
 import { appTicker, setLineStyle, setXy } from "./pixi-surface.ts";
-import { disposeChildren, syncPool } from "./labels.ts";
+import { disposeChildren, syncPool, type PoolNode } from "./labels.ts";
 
 /** Rows reserved for spawn (vertical pair at y=0,1). Blocks stuck above the danger line risk game over. */
 const SPAWN_ROWS = 2;
@@ -141,18 +141,22 @@ export class Renderer {
     const grid = board.getGrid();
     const isDead = (x: number, y: number) => board.isDeadCell(x, y);
     const rects = paintList(grid, this.cellSize, active, isDead);
-    this.texts = syncPool(this.texts, rects.length, () => {
-      const text = new PIXI.Text("", {
-        fontFamily: "system-ui, sans-serif",
-        fontSize,
-        fontWeight: "700",
-        fill: 0xffffff,
-        align: "center",
-      });
-      text.anchor.set(0.5);
-      this.labels.addChild(text);
-      return text;
-    });
+    this.texts = syncPool(
+      this.texts as unknown as PoolNode[],
+      rects.length,
+      () => {
+        const text = new PIXI.Text("", {
+          fontFamily: "system-ui, sans-serif",
+          fontSize,
+          fontWeight: "700",
+          fill: 0xffffff,
+          align: "center",
+        });
+        text.anchor.set(0.5);
+        this.labels.addChild(text);
+        return text as unknown as PoolNode;
+      },
+    ) as unknown as InstanceType<typeof PIXI.Text>[];
     for (let i = 0; i < rects.length; i++) {
       const r = rects[i];
       const lightness = r.dead ? FILL_DEAD_LIGHTNESS : FILL_LIGHTNESS;
