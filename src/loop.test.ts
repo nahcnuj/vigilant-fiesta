@@ -16,10 +16,10 @@ Deno.test("advanceDrop runs one tick and keeps the remainder", () => {
   assertEquals(advanceDrop(690, 16, 700), { ticks: 1, remainderMs: 6 });
 });
 
-Deno.test("advanceDrop carries the backlog forward instead of discarding it", () => {
-  assertEquals(advanceDrop(0, 600_000, 120), { ticks: 10, remainderMs: 598800 });
+Deno.test("advanceDrop discards excess backlog beyond the tick cap", () => {
+  assertEquals(advanceDrop(0, 600_000, 120), { ticks: 10, remainderMs: 0 });
 });
 
-Deno.test("advanceDrop respects the tick cap on ordinary frames and carries remainder", () => {
-  assertEquals(advanceDrop(0, 1000, 120, 3), { ticks: 3, remainderMs: 640 });
+Deno.test("advanceDrop respects the tick cap on ordinary frames and keeps sub-interval remainder", () => {
+  assertEquals(advanceDrop(0, 1000, 120, 3), { ticks: 3, remainderMs: 40 });
 });

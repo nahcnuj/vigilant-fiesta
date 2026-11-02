@@ -30,5 +30,12 @@ export function advanceDrop(
     acc -= intervalMs;
     ticks++;
   }
+  // If the frame was so long that the tick cap was hit, discard the remaining
+  // whole intervals so a single slow frame cannot create a sustained
+  // catch-up burst of ticks over the following frames (which freezes the
+  // game during long play). Keep only the sub-interval remainder.
+  if (ticks === maxTicks && acc >= intervalMs) {
+    acc = acc % intervalMs;
+  }
   return { ticks, remainderMs: acc };
 }
