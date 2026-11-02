@@ -88,8 +88,8 @@ Deno.test("randomBlock / randomPair は設計のブロック集合と分布に�
   assertEquals(opBlock, op("+"));
 
   const pair = randomPair(() => 0.4, initialDesign);
-  assertEquals(pair.pivot, num(5));
-  assertEquals(pair.secondary, num(5));
+  assertEquals(pair.pivot, num(4));
+  assertEquals(pair.secondary, op("+"));
 
   const zeroDesign = designForScore(1_000);
   assertEquals(randomBlock(() => 0, zeroDesign), num(0));
