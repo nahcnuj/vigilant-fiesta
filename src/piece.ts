@@ -49,10 +49,8 @@ export function randomPair(
   rng: () => number = Math.random,
   design: LevelDesign = LEVEL_DESIGNS[0],
 ): FallingPair {
-  const pivot = randomBlock(rng, design);
-  const secondary = randomBlock(rng, design);
   if (design.distribution !== "biased") {
-    return new FallingPair(pivot, secondary);
+    return new FallingPair(randomBlock(rng, design), randomBlock(rng, design));
   }
 
   const useNumbers = rng() < 0.5;
