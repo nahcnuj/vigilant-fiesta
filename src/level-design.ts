@@ -16,7 +16,7 @@ export interface LevelDesign {
   readonly forcedGameOver: ForcedGameOver;
 }
 
-function createLevelDesign(
+export function createLevelDesign(
   level: number,
   scoreThreshold: number,
   digits: number[],
