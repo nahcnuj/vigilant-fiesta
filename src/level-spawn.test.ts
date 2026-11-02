@@ -7,14 +7,42 @@ function sequence(values: number[]): () => number {
   return () => values[Math.min(index++, values.length - 1)];
 }
 
-Deno.test("レベル0〜5のペアは数字と記号の組み合わせになる", () => {
+Deno.test("レベル0〜5のペアは数字2個または数字と記号の組み合わせになる", () => {
   for (let level = 0; level <= 5; level++) {
     const design = designForLevel(level);
-    for (const first of [0.25, 0.75]) {
-      const pair = randomPair(sequence([first, 0.4, 0.4]), design);
-      const kinds = [pair.pivot.kind, pair.secondary.kind].sort();
-      assertEquals(kinds, ["num", "op"]);
+
+    const numberPair = randomPair(sequence([0.1, 0.4, 0.4]), design);
+    assertEquals(
+      [numberPair.pivot.kind, numberPair.secondary.kind],
+      ["num", "num"],
+    );
+
+    const mixedPair = randomPair(sequence([0.5, 0.4, 0.4, 0.4]), design);
+    assertEquals(
+      [mixedPair.pivot.kind, mixedPair.secondary.kind].sort(),
+      ["num", "op"],
+    );
+  }
+});
+
+Deno.test("レベル0〜5は数字と記号が2:1の割合で出現する", () => {
+  for (let level = 0; level <= 5; level++) {
+    const design = designForLevel(level);
+    let numbers = 0;
+    let operators = 0;
+
+    for (let i = 0; i < 300; i++) {
+      const composition = i % 3 === 0 ? 0.1 : 0.5;
+      const pair = randomPair(sequence([composition, 0.4, 0.4, 0.4]), design);
+      for (const block of [pair.pivot, pair.secondary]) {
+        if (block.kind === "num") numbers++;
+        else operators++;
+      }
     }
+
+    assertEquals(numbers, 400);
+    assertEquals(operators, 200);
+    assertEquals(numbers, operators * 2);
   }
 });
 
