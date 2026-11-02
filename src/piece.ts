@@ -1,16 +1,18 @@
+import { LEVEL_DESIGNS, type LevelDesign } from "./level-design.ts";
+
 /** Arithmetic operator on the field. */
 export type Operator = "+" | "-" | "*" | "/";
 
-/** Digits used on the board (original: 1–9 only). */
-export type Digit = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
+/** Digits used on the board (original: 1–9, later levels add 0). */
+export type Digit = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 
 export type Block =
   | { kind: "num"; value: Digit }
   | { kind: "op"; value: Operator };
 
 export function num(value: number): Block {
-  if (!Number.isInteger(value) || value < 1 || value > 9) {
-    throw new RangeError(`digit must be 1–9, got ${value}`);
+  if (!Number.isInteger(value) || value < 0 || value > 9) {
+    throw new RangeError(`digit must be 0–9, got ${value}`);
   }
   return { kind: "num", value: value as Digit };
 }
@@ -19,10 +21,65 @@ export function op(value: Operator): Block {
   return { kind: "op", value };
 }
 
-export function randomBlock(rng: () => number = Math.random): Block {
-  if (rng() < 0.7) return num(1 + Math.floor(rng() * 9));
-  const ops: Operator[] = ["+", "-", "*", "/"];
-  return op(ops[Math.floor(rng() * ops.length)]);
+export function randomBlock(
+  rng: () => number = Math.random,
+  design: LevelDesign = LEVEL_DESIGNS[0],
+): Block {
+  if (design.distribution === "biased") {
+    const useNumbers = rng() < 0.5;
+    if (useNumbers) {
+      const idx = Math.floor(rng() * design.digits.length);
+      const value = design.digits[Math.min(idx, design.digits.length - 1)];
+      return num(value);
+    }
+    const idx = Math.floor(rng() * design.operators.length);
+    const value = design.operators[Math.min(idx, design.operators.length - 1)];
+    return op(value);
+  }
+
+  const blocks: Block[] = [
+    ...design.digits.map((value) => num(value)),
+    ...design.operators.map((value) => op(value)),
+  ];
+  const index = Math.min(Math.floor(rng() * blocks.length), blocks.length - 1);
+  return blocks[index];
+}
+
+export function randomPair(
+  rng: () => number = Math.random,
+  design: LevelDesign = LEVEL_DESIGNS[0],
+): FallingPair {
+  if (design.distribution !== "biased") {
+    return new FallingPair(randomBlock(rng, design), randomBlock(rng, design));
+  }
+
+  const useNumbers = rng() < 0.5;
+  if (useNumbers) {
+    const firstIdx = Math.min(
+      Math.floor(rng() * design.digits.length),
+      design.digits.length - 1,
+    );
+    const secondIdx = Math.min(
+      Math.floor(rng() * design.digits.length),
+      design.digits.length - 1,
+    );
+    return new FallingPair(
+      num(design.digits[firstIdx]),
+      num(design.digits[secondIdx]),
+    );
+  }
+  const firstIdx = Math.min(
+    Math.floor(rng() * design.operators.length),
+    design.operators.length - 1,
+  );
+  const secondIdx = Math.min(
+    Math.floor(rng() * design.operators.length),
+    design.operators.length - 1,
+  );
+  return new FallingPair(
+    op(design.operators[firstIdx]),
+    op(design.operators[secondIdx]),
+  );
 }
 
 /** Read-only view of a falling / next pair (no rotate mutators). */
@@ -96,8 +153,4 @@ export class FallingPair {
       },
     };
   }
-}
-
-export function randomPair(rng: () => number = Math.random): FallingPair {
-  return new FallingPair(randomBlock(rng), randomBlock(rng));
 }
