@@ -211,9 +211,8 @@ export class Game {
     for (let guard = 0; guard < 50; guard++) {
       const elapsed = performance.now() - startTime;
       if (elapsed > maxTimeMs) break;
-      const design = this.#design;
       const matches = findFormulas(this.#board);
-      if (design.forcedGameOver.divisionByZero && hasDivisionByZero(this.#board)) {
+      if (this.#design.forcedGameOver.divisionByZero && hasDivisionByZero(this.#board)) {
         this.emitGameOver();
         return;
       }
@@ -222,7 +221,7 @@ export class Game {
       this.#score += delta;
       this.#onEvent?.({ type: "cleared", scoreDelta: delta });
       this.refreshDesign();
-      if (design.forcedGameOver.negativeScore && this.#score < 0) {
+      if (this.#design.forcedGameOver.negativeScore && this.#score < 0) {
         this.emitGameOver();
         return;
       }

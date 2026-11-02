@@ -98,7 +98,14 @@ export function designForLevel(level: number): LevelDesign {
   const base = LEVEL_DESIGNS[Math.min(level, LEVEL_DESIGNS.length - 1)];
   if (level <= LEVEL_DESIGNS.length - 1) return base;
   const scoreThreshold = Math.pow(10, level - 3);
-  return { ...base, level, scoreThreshold };
+  return {
+    level,
+    scoreThreshold,
+    digits: [...base.digits],
+    operators: [...base.operators],
+    distribution: base.distribution,
+    forcedGameOver: { ...base.forcedGameOver },
+  };
 }
 
 export function designForScore(score: number): LevelDesign {

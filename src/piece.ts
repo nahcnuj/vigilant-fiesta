@@ -28,10 +28,12 @@ export function randomBlock(
   if (design.distribution === "biased") {
     const useNumbers = rng() < 0.5;
     if (useNumbers) {
-      const value = design.digits[Math.floor(rng() * design.digits.length)];
+      const idx = Math.floor(rng() * design.digits.length);
+      const value = design.digits[Math.min(idx, design.digits.length - 1)];
       return num(value);
     }
-    const value = design.operators[Math.floor(rng() * design.operators.length)];
+    const idx = Math.floor(rng() * design.operators.length);
+    const value = design.operators[Math.min(idx, design.operators.length - 1)];
     return op(value);
   }
 
@@ -39,7 +41,7 @@ export function randomBlock(
     ...design.digits.map((value) => num(value)),
     ...design.operators.map((value) => op(value)),
   ];
-  const index = Math.floor(rng() * blocks.length);
+  const index = Math.min(Math.floor(rng() * blocks.length), blocks.length - 1);
   return blocks[index];
 }
 
@@ -47,21 +49,37 @@ export function randomPair(
   rng: () => number = Math.random,
   design: LevelDesign = LEVEL_DESIGNS[0],
 ): FallingPair {
-  const pivot = randomBlock(rng, design);
-  const secondary = randomBlock(rng, design);
   if (design.distribution !== "biased") {
-    return new FallingPair(pivot, secondary);
+    return new FallingPair(randomBlock(rng, design), randomBlock(rng, design));
   }
 
   const useNumbers = rng() < 0.5;
   if (useNumbers) {
-    const first = design.digits[Math.floor(rng() * design.digits.length)];
-    const second = design.digits[Math.floor(rng() * design.digits.length)];
-    return new FallingPair(num(first), num(second));
+    const firstIdx = Math.min(
+      Math.floor(rng() * design.digits.length),
+      design.digits.length - 1,
+    );
+    const secondIdx = Math.min(
+      Math.floor(rng() * design.digits.length),
+      design.digits.length - 1,
+    );
+    return new FallingPair(
+      num(design.digits[firstIdx]),
+      num(design.digits[secondIdx]),
+    );
   }
-  const first = design.operators[Math.floor(rng() * design.operators.length)];
-  const second = design.operators[Math.floor(rng() * design.operators.length)];
-  return new FallingPair(op(first), op(second));
+  const firstIdx = Math.min(
+    Math.floor(rng() * design.operators.length),
+    design.operators.length - 1,
+  );
+  const secondIdx = Math.min(
+    Math.floor(rng() * design.operators.length),
+    design.operators.length - 1,
+  );
+  return new FallingPair(
+    op(design.operators[firstIdx]),
+    op(design.operators[secondIdx]),
+  );
 }
 
 /** Read-only view of a falling / next pair (no rotate mutators). */
