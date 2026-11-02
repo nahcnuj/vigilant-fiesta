@@ -1,6 +1,6 @@
 import type { Operator } from "./piece.ts";
 
-export type LevelDistribution = "uniform" | "biased";
+export type LevelDistribution = "uniform" | "mixed" | "biased";
 
 export interface ForcedGameOver {
   negativeScore: boolean;
@@ -40,7 +40,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
     0,
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+"],
-    "uniform",
+    "mixed",
     { negativeScore: false, divisionByZero: false },
   ),
   createLevelDesign(
@@ -48,7 +48,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
     0,
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+"],
-    "uniform",
+    "mixed",
     { negativeScore: false, divisionByZero: false },
   ),
   createLevelDesign(
@@ -56,7 +56,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
     10,
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+", "-"],
-    "uniform",
+    "mixed",
     { negativeScore: true, divisionByZero: false },
   ),
   createLevelDesign(
@@ -64,7 +64,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
     50,
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+", "-", "*"],
-    "uniform",
+    "mixed",
     { negativeScore: true, divisionByZero: false },
   ),
   createLevelDesign(
@@ -72,7 +72,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
     250,
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+", "-", "*", "/"],
-    "uniform",
+    "mixed",
     { negativeScore: true, divisionByZero: false },
   ),
   createLevelDesign(
@@ -80,7 +80,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
     1000,
     [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+", "-", "*", "/"],
-    "uniform",
+    "mixed",
     { negativeScore: true, divisionByZero: true },
   ),
   createLevelDesign(

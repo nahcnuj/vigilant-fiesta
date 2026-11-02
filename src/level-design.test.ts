@@ -52,37 +52,37 @@ Deno.test("levelForScore は設計レベルを返す", () => {
 Deno.test("各レベル設計のブロックと強制終了条件を検証する", () => {
   assertEquals(LEVEL_DESIGNS[0].digits, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assertEquals(LEVEL_DESIGNS[0].operators, ["+"]);
-  assertEquals(LEVEL_DESIGNS[0].distribution, "uniform");
+  assertEquals(LEVEL_DESIGNS[0].distribution, "mixed");
   assertEquals(LEVEL_DESIGNS[0].forcedGameOver.negativeScore, false);
   assertEquals(LEVEL_DESIGNS[0].forcedGameOver.divisionByZero, false);
 
   assertEquals(LEVEL_DESIGNS[1].digits, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assertEquals(LEVEL_DESIGNS[1].operators, ["+"]);
-  assertEquals(LEVEL_DESIGNS[1].distribution, "uniform");
+  assertEquals(LEVEL_DESIGNS[1].distribution, "mixed");
   assertEquals(LEVEL_DESIGNS[1].forcedGameOver.negativeScore, false);
   assertEquals(LEVEL_DESIGNS[1].forcedGameOver.divisionByZero, false);
 
   assertEquals(LEVEL_DESIGNS[2].digits, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assertEquals(LEVEL_DESIGNS[2].operators, ["+", "-"]);
-  assertEquals(LEVEL_DESIGNS[2].distribution, "uniform");
+  assertEquals(LEVEL_DESIGNS[2].distribution, "mixed");
   assertEquals(LEVEL_DESIGNS[2].forcedGameOver.negativeScore, true);
   assertEquals(LEVEL_DESIGNS[2].forcedGameOver.divisionByZero, false);
 
   assertEquals(LEVEL_DESIGNS[3].digits, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assertEquals(LEVEL_DESIGNS[3].operators, ["+", "-", "*"]);
-  assertEquals(LEVEL_DESIGNS[3].distribution, "uniform");
+  assertEquals(LEVEL_DESIGNS[3].distribution, "mixed");
   assertEquals(LEVEL_DESIGNS[3].forcedGameOver.negativeScore, true);
   assertEquals(LEVEL_DESIGNS[3].forcedGameOver.divisionByZero, false);
 
   assertEquals(LEVEL_DESIGNS[4].digits, [1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assertEquals(LEVEL_DESIGNS[4].operators, ["+", "-", "*", "/"]);
-  assertEquals(LEVEL_DESIGNS[4].distribution, "uniform");
+  assertEquals(LEVEL_DESIGNS[4].distribution, "mixed");
   assertEquals(LEVEL_DESIGNS[4].forcedGameOver.negativeScore, true);
   assertEquals(LEVEL_DESIGNS[4].forcedGameOver.divisionByZero, false);
 
   assertEquals(LEVEL_DESIGNS[5].digits, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
   assertEquals(LEVEL_DESIGNS[5].operators, ["+", "-", "*", "/"]);
-  assertEquals(LEVEL_DESIGNS[5].distribution, "uniform");
+  assertEquals(LEVEL_DESIGNS[5].distribution, "mixed");
   assertEquals(LEVEL_DESIGNS[5].forcedGameOver.negativeScore, true);
   assertEquals(LEVEL_DESIGNS[5].forcedGameOver.divisionByZero, true);
 

@@ -180,16 +180,16 @@ Deno.test("設計がゼロ割を強制するとゲームオーバーになる", 
 
 Deno.test("コンストラクタで rng を渡せる", () => {
   const game = new Game(8, 10, { rng: () => 0.4 });
-  assertEquals(game.current.pivot, num(5));
-  assertEquals(game.next.pivot, num(5));
+  assertEquals(game.current.pivot, num(4));
+  assertEquals(game.next.pivot, num(4));
   assert(!game.isGameOver);
 });
 
 Deno.test("初期はレベル0の設計で数字1〜9と+が使われる", () => {
   const game = new Game(8, 10, { rng: () => 0.4 });
   assertEquals(game.level, 0);
-  assertEquals(game.current.pivot, num(5));
-  assertEquals(game.current.secondary, num(5));
+  assertEquals(game.current.pivot, num(4));
+  assertEquals(game.current.secondary, op("+"));
 });
 
 Deno.test("水平向きのハードドロップ後、片方は下まで落ちる", () => {
