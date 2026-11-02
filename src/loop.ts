@@ -24,6 +24,9 @@ export function advanceDrop(
   intervalMs: number,
   maxTicks = 10,
 ): DropAdvance {
+  if (intervalMs <= 0) {
+    return { ticks: 0, remainderMs: 0 };
+  }
   let acc = accMs + deltaMs;
   let ticks = 0;
   while (acc >= intervalMs && ticks < maxTicks) {
