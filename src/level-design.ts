@@ -1,6 +1,12 @@
 import type { Operator } from "./piece.ts";
 
-export type LevelDistribution = "uniform" | "mixed" | "biased";
+export type LevelDistribution =
+  /** Each block is drawn uniformly from all digits and operators. */
+  | "uniform"
+  /** Levels 0-5: numbers appear twice as often as operators (2:1). */
+  | "mixed"
+  /** Levels 6+: pairs are number-only or operator-only. */
+  | "biased";
 
 export interface ForcedGameOver {
   negativeScore: boolean;

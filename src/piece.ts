@@ -49,18 +49,30 @@ export function randomPair(
   rng: () => number = Math.random,
   design: LevelDesign = LEVEL_DESIGNS[0],
 ): FallingPair {
+  // "mixed" keeps levels 0-5 producing formable pairs with a 2:1 ratio
+  // of numbers to operators overall.
   if (design.distribution === "mixed") {
-    const numberFirst = rng() < 0.5;
+    const composition = rng();
     const digitIdx = Math.min(
       Math.floor(rng() * design.digits.length),
       design.digits.length - 1,
     );
+    const digitBlock = num(design.digits[digitIdx]);
+
+    if (composition < 1 / 3) {
+      const secondIdx = Math.min(
+        Math.floor(rng() * design.digits.length),
+        design.digits.length - 1,
+      );
+      return new FallingPair(digitBlock, num(design.digits[secondIdx]));
+    }
+
     const opIdx = Math.min(
       Math.floor(rng() * design.operators.length),
       design.operators.length - 1,
     );
-    const digitBlock = num(design.digits[digitIdx]);
     const opBlock = op(design.operators[opIdx]);
+    const numberFirst = rng() < 0.5;
     return numberFirst
       ? new FallingPair(digitBlock, opBlock)
       : new FallingPair(opBlock, digitBlock);
