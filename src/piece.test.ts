@@ -3,6 +3,7 @@ import {
   assertThrows,
 } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { FallingPair, num, op, randomBlock, randomPair } from "./piece.ts";
+import { designForScore } from "./level-design.ts";
 
 Deno.test("2ブロックのペアは時計回りに回転し、4回で向きが戻る", () => {
   const pair = new FallingPair(num(1), op("+"));
@@ -57,36 +58,39 @@ Deno.test("asView は向きを読めても rotate を公開しない", () => {
   assertEquals(view.blocksAt(0, 0)[1], { x: -1, y: 0, block: num(2) });
 });
 
-Deno.test("num は 1–9 のみ受け付ける", () => {
+Deno.test("num は 0–9 を受け付ける", () => {
+  assertEquals(num(0), { kind: "num", value: 0 });
   assertEquals(num(1), { kind: "num", value: 1 });
   assertEquals(num(5), { kind: "num", value: 5 });
   assertEquals(num(9), { kind: "num", value: 9 });
   let threw = false;
-  try {
-    num(0 as number);
-  } catch {
-    threw = true;
-  }
-  assertEquals(threw, true);
-  threw = false;
   try {
     num(10 as number);
   } catch {
     threw = true;
   }
   assertEquals(threw, true);
+  threw = false;
+  try {
+    num(-1 as number);
+  } catch {
+    threw = true;
+  }
+  assertEquals(threw, true);
 });
 
-Deno.test("randomBlock / randomPair は rng に従う", () => {
-  // < 0.7 → digit; floor(0.5*10)=5
-  const digit = randomBlock(() => 0.5);
+Deno.test("randomBlock / randomPair は設計のブロック集合と分布に従う", () => {
+  const initialDesign = designForScore(0);
+  const digit = randomBlock(() => 0.4, initialDesign);
   assertEquals(digit, num(5));
-  // >= 0.7 → op; floor(0.85*4)=3 → "/"
   let i = 0;
-  const opBlock = randomBlock(() => (i++ === 0 ? 0.8 : 0.85));
-  assertEquals(opBlock, op("/"));
+  const opBlock = randomBlock(() => (i++ === 0 ? 0.9 : 0.95), initialDesign);
+  assertEquals(opBlock, op("+"));
 
-  const pair = randomPair(() => 0.5);
+  const pair = randomPair(() => 0.4, initialDesign);
   assertEquals(pair.pivot, num(5));
   assertEquals(pair.secondary, num(5));
+
+  const zeroDesign = designForScore(1_000);
+  assertEquals(randomBlock(() => 0, zeroDesign), num(0));
 });

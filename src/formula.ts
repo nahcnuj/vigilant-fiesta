@@ -84,6 +84,39 @@ export function findFormulas(board: Board): FormulaMatch[] {
   return matches;
 }
 
+export function hasDivisionByZero(board: Board): boolean {
+  const grid = board.getGrid();
+  const cellAt: CellAt = (x, y) => grid[y][x];
+  const isNum = (c: Block | null): c is { kind: "num"; value: Digit } =>
+    c !== null && c.kind === "num";
+  const isOp = (c: Block | null): c is { kind: "op"; value: Operator } =>
+    c !== null && c.kind === "op";
+
+  for (let y = 0; y < board.height; y++) {
+    for (let x = 0; x + 2 < board.width; x++) {
+      const a = cellAt(x, y);
+      const o = cellAt(x + 1, y);
+      const b = cellAt(x + 2, y);
+      if (isNum(a) && isOp(o) && isNum(b) && o.value === "/" && b.value === 0) {
+        return true;
+      }
+    }
+  }
+
+  for (let x = 0; x < board.width; x++) {
+    for (let y = 0; y + 2 < board.height; y++) {
+      const a = cellAt(x, y);
+      const o = cellAt(x, y + 1);
+      const b = cellAt(x, y + 2);
+      if (isNum(a) && isOp(o) && isNum(b) && o.value === "/" && b.value === 0) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
 export function totalFormulaScore(matches: FormulaMatch[]): number {
   return matches.reduce((s, m) => s + m.result, 0);
 }

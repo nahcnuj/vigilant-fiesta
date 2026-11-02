@@ -1,6 +1,6 @@
-/** Milliseconds between automatic drops at the given level. */
+/** Milliseconds between automatic drops at the given level design. */
 export function dropIntervalMs(level: number): number {
-  return Math.max(120, 700 - (level - 1) * 50);
+  return Math.max(120, 700 - level * 50);
 }
 
 export interface DropAdvance {

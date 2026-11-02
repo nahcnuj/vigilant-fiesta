@@ -1,9 +1,9 @@
 import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { advanceDrop, dropIntervalMs } from "./loop.ts";
 
-Deno.test("dropIntervalMs speeds up with level and stops at 120ms", () => {
-  assertEquals(dropIntervalMs(1), 700);
-  assertEquals(dropIntervalMs(2), 650);
+Deno.test("dropIntervalMs speeds up with level design and stops at 120ms", () => {
+  assertEquals(dropIntervalMs(0), 700);
+  assertEquals(dropIntervalMs(1), 650);
   assertEquals(dropIntervalMs(13), 120);
   assertEquals(dropIntervalMs(100), 120);
 });

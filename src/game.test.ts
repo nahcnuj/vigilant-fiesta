@@ -4,6 +4,7 @@ import {
 } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { Game } from "./game.ts";
 import { FallingPair, num, op } from "./piece.ts";
+import { designForLevel } from "./level-design.ts";
 
 function pair(
   a: ReturnType<typeof num> | ReturnType<typeof op>,
@@ -144,15 +145,51 @@ Deno.test("スコア 250 ごとにレベルが上がる", () => {
     ]);
   }
   game.hardDrop();
-  assertEquals(game.score >= 250, true);
-  assertEquals(game.level >= 2, true);
+  assertEquals(game.score, 250);
+  assertEquals(game.level, 4);
+});
+
+Deno.test("設計が負けを強制するとゲームオーバーになる", () => {
+  const events: string[] = [];
+  const game = new Game(8, 10, {
+    design: designForLevel(2),
+    onEvent: (ev) => events.push(ev.type),
+  });
+  game.seedBlocks([
+    { x: 0, y: 9, block: num(3) },
+    { x: 1, y: 9, block: op("-") },
+    { x: 2, y: 9, block: num(7) },
+  ]);
+  game.hardDrop();
+  assert(game.isGameOver);
+  assert(events.includes("gameover"));
+});
+
+Deno.test("設計がゼロ割を強制するとゲームオーバーになる", () => {
+  const game = new Game(8, 10, {
+    design: designForLevel(5),
+  });
+  game.seedBlocks([
+    { x: 0, y: 9, block: num(1) },
+    { x: 1, y: 9, block: op("/") },
+    { x: 2, y: 9, block: num(0) },
+  ]);
+  game.hardDrop();
+  assert(game.isGameOver);
 });
 
 Deno.test("コンストラクタで rng を渡せる", () => {
-  const game = new Game(8, 10, { rng: () => 0.5 });
+  const game = new Game(8, 10, { rng: () => 0.4 });
   assertEquals(game.current.pivot, num(5));
   assertEquals(game.next.pivot, num(5));
   assert(!game.isGameOver);
+});
+
+Deno.test("初期はレベル0の設計で数字1〜9と+が使われる", () => {
+  const game = new Game(8, 10, { rng: () => 0.4 });
+  assertEquals(game.level, 0);
+  assertEquals(game.current.pivot, num(5));
+  assertEquals(game.current.secondary, num(5));
 });
 
 Deno.test("水平向きのハードドロップ後、片方は下まで落ちる", () => {

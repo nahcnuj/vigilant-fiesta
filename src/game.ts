@@ -1,7 +1,12 @@
 import { Board, type Cell } from "./board.ts";
+import {
+  designForScore,
+  type LevelDesign,
+} from "./level-design.ts";
 import { type Block, FallingPair, type PairView, randomPair } from "./piece.ts";
 import {
   findFormulas,
+  hasDivisionByZero,
   isPermanentlyUnclearable,
   totalFormulaScore,
 } from "./formula.ts";
@@ -27,6 +32,7 @@ export interface GameOptions {
   /** Initial pivot position (tests); defaults to spawn. */
   position?: Position;
   rng?: () => number;
+  design?: LevelDesign;
   onEvent?: (ev: GameEvent) => void;
 }
 
@@ -37,7 +43,8 @@ export class Game {
   #next: FallingPair;
   #position: Position;
   #score = 0;
-  #level = 1;
+  #design: LevelDesign;
+  #level = 0;
   #gameOver = false;
   readonly #rng: () => number;
   readonly #onEvent?: (ev: GameEvent) => void;
@@ -49,10 +56,12 @@ export class Game {
   ) {
     this.#rng = options.rng ?? Math.random;
     this.#onEvent = options.onEvent;
+    this.#design = options.design ?? designForScore(0);
+    this.#level = this.#design.level;
     this.#board = new Board(width, height);
     // Clone option pairs so external rotateCW cannot mutate session orientation.
-    this.#current = options.current?.clone() ?? randomPair(this.#rng);
-    this.#next = options.next?.clone() ?? randomPair(this.#rng);
+    this.#current = options.current?.clone() ?? randomPair(this.#rng, this.#design);
+    this.#next = options.next?.clone() ?? randomPair(this.#rng, this.#design);
     this.#position = options.position
       ? { ...options.position }
       : this.spawnPosition();
@@ -123,6 +132,17 @@ export class Game {
     this.#onEvent?.({ type: "gameover" });
   }
 
+  private refreshDesign(): void {
+    const next = designForScore(this.#score);
+    if (next.level <= this.#design.level) return;
+    this.#design = next;
+    const prevLevel = this.#level;
+    this.#level = next.level;
+    if (this.#level > prevLevel) {
+      this.#onEvent?.({ type: "levelup", level: this.#level });
+    }
+  }
+
   tick(): void {
     if (this.#gameOver) return;
     if (!this.#board.canPlaceBlocks(this.cellsAt())) {
@@ -191,15 +211,20 @@ export class Game {
     for (let guard = 0; guard < 50; guard++) {
       const elapsed = performance.now() - startTime;
       if (elapsed > maxTimeMs) break;
+      const design = this.#design;
       const matches = findFormulas(this.#board);
+      if (design.forcedGameOver.divisionByZero && hasDivisionByZero(this.#board)) {
+        this.emitGameOver();
+        return;
+      }
       if (matches.length === 0) break;
       const delta = totalFormulaScore(matches);
       this.#score += delta;
       this.#onEvent?.({ type: "cleared", scoreDelta: delta });
-      const prevLevel = this.#level;
-      this.#level = Math.floor(this.#score / 250) + 1;
-      if (this.#level > prevLevel) {
-        this.#onEvent?.({ type: "levelup", level: this.#level });
+      this.refreshDesign();
+      if (design.forcedGameOver.negativeScore && this.#score < 0) {
+        this.emitGameOver();
+        return;
       }
       const cleared = new Map<string, { x: number; y: number }>();
       for (const m of matches) {
@@ -213,7 +238,7 @@ export class Game {
 
   private spawnNext(): void {
     this.#current = this.#next;
-    this.#next = randomPair(this.#rng);
+    this.#next = randomPair(this.#rng, this.#design);
     this.#position = this.spawnPosition();
     if (!this.#board.canPlaceBlocks(this.cellsAt())) {
       this.emitGameOver();
