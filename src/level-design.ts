@@ -45,7 +45,7 @@ export const LEVEL_DESIGNS: readonly LevelDesign[] = [
   ),
   createLevelDesign(
     1,
-    1,
+    0,
     [1, 2, 3, 4, 5, 6, 7, 8, 9],
     ["+"],
     "uniform",
@@ -109,6 +109,7 @@ export function designForLevel(level: number): LevelDesign {
 }
 
 export function designForScore(score: number): LevelDesign {
+  if (score <= 0) return LEVEL_DESIGNS[0];
   const design = LEVEL_DESIGNS.reduce(
     (current, next) => (score >= next.scoreThreshold ? next : current),
     LEVEL_DESIGNS[0],
