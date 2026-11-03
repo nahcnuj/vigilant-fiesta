@@ -72,7 +72,14 @@ export function markGuideCompleted(): void {
 export function resetGuideCompletedForTest(): void {
   try {
     const ls = (globalThis as { localStorage?: Storage }).localStorage;
-    ls?.removeItem(GUIDE_STORAGE_KEY);
+    if (!ls) return;
+    for (const k of GUIDE_STORAGE_KEYS) {
+      try {
+        ls.removeItem(k);
+      } catch {
+        /* ignore */
+      }
+    }
   } catch {
     /* ignore */
   }
@@ -96,29 +103,45 @@ export interface OperationGuideOptions {
   touch?: boolean;
 }
 
+type RootLike = {
+  hidden?: boolean;
+  classList?: { add(...c: string[]): void; remove(...c: string[]): void };
+  setAttribute?: (name: string, value: string) => void;
+  removeAttribute?: (name: string) => void;
+  querySelector?: (sel: string) => unknown;
+};
+
 export class OperationGuide {
   #index = 0;
   #touch: boolean;
-  #roots: HTMLElement[];
-  #textEls: HTMLElement[];
-  #stepEls: HTMLElement[];
-  #hintEls: HTMLElement[];
+  #roots: RootLike[];
+  #textEls: { textContent: string | null }[];
+  #stepEls: { textContent: string | null }[];
+  #hintEls: { textContent: string | null }[];
 
   constructor(
-    root: HTMLElement | HTMLElement[] | null,
+    root: unknown,
     options: OperationGuideOptions = {},
   ) {
-    this.#roots = Array.isArray(root) ? root : root ? [root] : [];
+    const arr = Array.isArray(root) ? root : root ? [root] : [];
+    this.#roots = arr.filter((x) => x !== null && x !== undefined) as RootLike[];
     this.#touch = options.touch ?? isTouchDevice();
+    const q = (r: RootLike, sel: string) => {
+      try {
+        return r.querySelector?.(sel) as { textContent: string | null } | null;
+      } catch {
+        return null;
+      }
+    };
     this.#textEls = this.#roots
-      .map((r) => r.querySelector?.("[data-guide-text]") as HTMLElement | null)
-      .filter((x): x is HTMLElement => !!x);
+      .map((r) => q(r, "[data-guide-text]"))
+      .filter((x): x is { textContent: string | null } => !!x);
     this.#stepEls = this.#roots
-      .map((r) => r.querySelector?.("[data-guide-step]") as HTMLElement | null)
-      .filter((x): x is HTMLElement => !!x);
+      .map((r) => q(r, "[data-guide-step]"))
+      .filter((x): x is { textContent: string | null } => !!x);
     this.#hintEls = this.#roots
-      .map((r) => r.querySelector?.("[data-guide-hint]") as HTMLElement | null)
-      .filter((x): x is HTMLElement => !!x);
+      .map((r) => q(r, "[data-guide-hint]"))
+      .filter((x): x is { textContent: string | null } => !!x);
   }
 
   get stepIndex(): number {
@@ -136,20 +159,20 @@ export class OperationGuide {
 
   show(): void {
     for (const r of this.#roots) {
-      r.hidden = false;
-      r.classList.remove("hidden");
-      r.setAttribute("data-guide-step", String(this.#index + 1));
-      r.setAttribute("data-guide-action", this.currentAction ?? "");
+      try { r.hidden = false; } catch { /* ignore */ }
+      try { r.classList?.remove("hidden"); } catch { /* ignore */ }
+      try { r.setAttribute?.("data-guide-step", String(this.#index + 1)); } catch { /* ignore */ }
+      try { r.setAttribute?.("data-guide-action", this.currentAction ?? ""); } catch { /* ignore */ }
     }
     this.#update();
   }
 
   hide(): void {
     for (const r of this.#roots) {
-      r.hidden = true;
-      r.classList.add("hidden");
-      r.removeAttribute("data-guide-step");
-      r.removeAttribute("data-guide-action");
+      try { r.hidden = true; } catch { /* ignore */ }
+      try { r.classList?.add("hidden"); } catch { /* ignore */ }
+      try { r.removeAttribute?.("data-guide-step"); } catch { /* ignore */ }
+      try { r.removeAttribute?.("data-guide-action"); } catch { /* ignore */ }
     }
   }
 
@@ -162,8 +185,8 @@ export class OperationGuide {
       return true;
     }
     for (const r of this.#roots) {
-      r.setAttribute("data-guide-step", String(this.#index + 1));
-      r.setAttribute("data-guide-action", this.currentAction ?? "");
+      try { r.setAttribute?.("data-guide-step", String(this.#index + 1)); } catch { /* ignore */ }
+      try { r.setAttribute?.("data-guide-action", this.currentAction ?? ""); } catch { /* ignore */ }
     }
     this.#update();
     return true;
