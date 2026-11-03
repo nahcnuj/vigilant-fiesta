@@ -35,7 +35,6 @@ const nextPivotEl = document.getElementById("next-pivot")!;
 const nextSecondaryEl = document.getElementById("next-secondary")!;
 const btnStart = document.getElementById("btn-start")!;
 const btnRetry = document.getElementById("btn-retry") as HTMLButtonElement;
-const btnInstall = document.getElementById("btn-install") as HTMLButtonElement | null;
 const adTitle = document.getElementById("ad-title");
 const adResult = document.getElementById("ad-result");
 const adSideLeft = document.getElementById("ad-side-left");
@@ -262,21 +261,5 @@ if ("serviceWorker" in navigator) {
   });
 }
 
-let deferredInstallPrompt: any = null;
-window.addEventListener("beforeinstallprompt", (e) => {
-  e.preventDefault();
-  deferredInstallPrompt = e;
-  if (btnInstall) btnInstall.hidden = false;
-});
-btnInstall?.addEventListener("click", () => {
-  if (!deferredInstallPrompt) return;
-  deferredInstallPrompt.prompt();
-  deferredInstallPrompt.userChoice.finally(() => {
-    deferredInstallPrompt = null;
-    if (btnInstall) btnInstall.hidden = true;
-  });
-});
-window.addEventListener("appinstalled", () => {
-  deferredInstallPrompt = null;
-  if (btnInstall) btnInstall.hidden = true;
-});
+
+
