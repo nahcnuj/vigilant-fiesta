@@ -1,7 +1,7 @@
 {
   "name": "Mathch-Three",
   "short_name": "Mathch-Three",
-  "description": "数式を組んで消す、落ち物パズル。",
+  "description": "Match-3 game meets Mathematics",
   "start_url": "https://www.nahcnuj.work/vigilant-fiesta/?f=pwa",
   "scope": "https://www.nahcnuj.work/vigilant-fiesta/",
   "display": "standalone",
