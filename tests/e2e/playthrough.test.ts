@@ -165,8 +165,4 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
       });
     },
   });
-} else {
 }
-
-// Placeholder to keep test suite non‑empty when E2E tests are skipped.
-Deno.test({ name: "placeholder when E2E skipped", sanitizeResources: false, sanitizeOps: false, fn() {} });
