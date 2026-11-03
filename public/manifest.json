@@ -1,0 +1,19 @@
+{
+  "name": "Mathch-Three",
+  "short_name": "Mathch-Three",
+  "description": "数式を組んで消す、落ち物パズル。",
+  "start_url": "https://www.nahcnuj.work/vigilant-fiesta/?f=pwa",
+  "scope": "https://www.nahcnuj.work/vigilant-fiesta/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
