@@ -159,7 +159,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
       await withServer(4175, async (ORIGIN, browser) => {
         const page = await browser.newPage();
         const errors = attachErrorCollectors(page);
-        await page.goto(`${ORIGIN}/index.html?f=pwa&e2e=1`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+        await page.goto(`${ORIGIN}/index.html?f=pwa`, { waitUntil: "domcontentloaded", timeout: 30_000 });
         await page.waitForSelector("#site-title", { timeout: 10_000 });
         await runPlaythrough(page, hardDropKeyboard, errors);
       });
