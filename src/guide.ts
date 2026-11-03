@@ -253,10 +253,3 @@ export class OperationGuide {
     }
   }
 }
-
-// Module-name aliases (canonical implementation/export: OperationGuide in guide.ts).
-// These exist only so callers can import from alternate, equally valid paths.
-export { OperationGuide as Guide };
-export { OperationGuide as Tutorial };
-export { OperationGuide as Onboarding };
-export type { OperationGuide as OperationGuideType };
