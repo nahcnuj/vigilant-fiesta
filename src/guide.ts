@@ -203,6 +203,7 @@ export class OperationGuide {
       try { r.classList?.add("hidden"); } catch { /* ignore */ }
       try { r.removeAttribute?.("data-guide-step"); } catch { /* ignore */ }
       try { r.removeAttribute?.("data-guide-action"); } catch { /* ignore */ }
+      try { r.removeAttribute?.("data-guide-mode"); } catch { /* ignore */ }
     }
   }
 
@@ -211,6 +212,7 @@ export class OperationGuide {
     if (next === null) return false;
     this.#index = next;
     if (this.isComplete) {
+      this.#update();
       this.hide();
       return true;
     }
@@ -252,7 +254,8 @@ export class OperationGuide {
   }
 }
 
-// Convenience aliases for alternate names (canonical export: OperationGuide).
+// Module-name aliases (canonical implementation/export: OperationGuide in guide.ts).
+// These exist only so callers can import from alternate, equally valid paths.
 export { OperationGuide as Guide };
 export { OperationGuide as Tutorial };
 export { OperationGuide as Onboarding };
