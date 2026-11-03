@@ -99,6 +99,35 @@ export function isGuideComplete(index: number): boolean {
   return index >= GUIDE_STEPS.length;
 }
 
+
+/** Map a game action to its primary key cap label. */
+export const GUIDE_KEY_CAPS: Readonly<Record<GameAction, string>> = {
+  moveRight: "→",
+  moveLeft: "←",
+  rotateCW: "↓",
+  hardDrop: "↑",
+};
+
+/** Inline SVG gestures for touch guidance. */
+export const GUIDE_TOUCH_ICONS: Readonly<Record<GameAction, string>> = {
+  moveRight:
+    '<svg class="guide-gesture" viewBox="0 0 48 24" width="48" height="24" aria-hidden="true"><path d="M4 12h32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M30 6l8 6-8 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  moveLeft:
+    '<svg class="guide-gesture" viewBox="0 0 48 24" width="48" height="24" aria-hidden="true"><path d="M44 12H12" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M18 6l-8 6 8 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  rotateCW:
+    '<svg class="guide-gesture" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><path d="M36 24a12 12 0 1 1-3.5-8.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M36 8v8h-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  hardDrop:
+    '<svg class="guide-gesture" viewBox="0 0 24 48" width="24" height="48" aria-hidden="true"><path d="M12 4v32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M6 30l6 8 6-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+};
+
+export function guideKeycapHtml(action: GameAction): string {
+  return `<kbd class="guide-key">${GUIDE_KEY_CAPS[action]}</kbd>`;
+}
+
+export function guideGestureHtml(action: GameAction): string {
+  return `<span class="guide-gesture-wrap">${GUIDE_TOUCH_ICONS[action]}</span>`;
+}
+
 export interface OperationGuideOptions {
   touch?: boolean;
 }
@@ -117,7 +146,7 @@ export class OperationGuide {
   #roots: RootLike[];
   #textEls: { textContent: string | null }[];
   #stepEls: { textContent: string | null }[];
-  #hintEls: { textContent: string | null }[];
+  #hintEls: { textContent: string | null; innerHTML?: string }[];
 
   constructor(
     root: unknown,
@@ -141,7 +170,7 @@ export class OperationGuide {
       .filter((x): x is { textContent: string | null } => !!x);
     this.#hintEls = this.#roots
       .map((r) => q(r, "[data-guide-hint]"))
-      .filter((x): x is { textContent: string | null } => !!x);
+      .filter((x): x is { textContent: string | null; innerHTML?: string } => !!x);
   }
 
   get stepIndex(): number {
@@ -163,6 +192,7 @@ export class OperationGuide {
       try { r.classList?.remove("hidden"); } catch { /* ignore */ }
       try { r.setAttribute?.("data-guide-step", String(this.#index + 1)); } catch { /* ignore */ }
       try { r.setAttribute?.("data-guide-action", this.currentAction ?? ""); } catch { /* ignore */ }
+      try { r.setAttribute?.("data-guide-mode", this.#touch ? "touch" : "keys"); } catch { /* ignore */ }
     }
     this.#update();
   }
@@ -187,6 +217,7 @@ export class OperationGuide {
     for (const r of this.#roots) {
       try { r.setAttribute?.("data-guide-step", String(this.#index + 1)); } catch { /* ignore */ }
       try { r.setAttribute?.("data-guide-action", this.currentAction ?? ""); } catch { /* ignore */ }
+      try { r.setAttribute?.("data-guide-mode", this.#touch ? "touch" : "keys"); } catch { /* ignore */ }
     }
     this.#update();
     return true;
@@ -203,14 +234,25 @@ export class OperationGuide {
         : "";
     }
     if (step) {
+      const plain = this.#touch ? step.touchHint : step.keyHint;
+      const html = this.#touch
+        ? guideGestureHtml(step.action)
+        : guideKeycapHtml(step.action);
       for (const el of this.#hintEls) {
-        el.textContent = this.#touch ? step.touchHint : step.keyHint;
+        el.textContent = plain;
+        if (typeof el.innerHTML === "string") {
+          try {
+            el.innerHTML = html;
+          } catch {
+            /* ignore */
+          }
+        }
       }
     }
   }
 }
 
-// Back-compat aliases / alternate spellings
+// Convenience aliases for alternate names (canonical export: OperationGuide).
 export { OperationGuide as Guide };
 export { OperationGuide as Tutorial };
 export { OperationGuide as Onboarding };
