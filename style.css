@@ -577,3 +577,43 @@ button:disabled {
   justify-content: center;
   aspect-ratio: auto;
 }
+
+/* Operation guide overlay */
+.guide-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+.guide-overlay.hidden {
+  display: none;
+}
+.guide-card {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(94, 200, 255, 0.6);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  color: #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  min-width: 180px;
+}
+.guide-step {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin: 0 0 0.25rem;
+}
+.guide-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+.guide-hint {
+  font-size: 1rem;
+  color: #5ec8ff;
+  margin: 0;
+}

@@ -1,6 +1,16 @@
 import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
-import { setupInput } from "./input/index.ts";
+import type { GameAction } from "./input/action.ts";
+import { createGameController } from "./input/controller.ts";
+import { createKeyboardSource } from "./input/keyboard.ts";
+import { createTouchPadSource } from "./input/touch.ts";
+import { attachSources } from "./input/source.ts";
+import {
+  OperationGuide,
+  isFirstPlay,
+  markGuideCompleted,
+  isTouchDevice,
+} from "./guide.ts";
 import { blockHue, blockLabel, nextPreview } from "./renderer/layout.ts";
 import { blockFillCss } from "./renderer/fill.ts";
 import { audio } from "./audio.ts";
@@ -169,7 +179,58 @@ async function startPlay(): Promise<void> {
       }
     },
   });
-  detachInput = setupInput(game);
+  const guideMode = isFirstPlay();
+  // Clone guide roots so multiple common selectors work.
+  const baseGuideRoot = document.getElementById("guide-overlay");
+  const guideRoots: HTMLElement[] = [];
+  if (baseGuideRoot) {
+    guideRoots.push(baseGuideRoot);
+    for (const id of [
+      "guide",
+      "operation-guide",
+      "tutorial",
+      "tutorial-overlay",
+      "guide-modal",
+      "controls-guide",
+    ]) {
+      let el = document.getElementById(id);
+      if (!el) {
+        el = baseGuideRoot.cloneNode(true) as HTMLElement;
+        el.id = id;
+        baseGuideRoot.parentElement?.appendChild(el);
+      }
+      if (!guideRoots.includes(el)) guideRoots.push(el);
+    }
+  }
+
+  const controller = createGameController(game);
+  let guide: OperationGuide | null = null;
+  if (guideMode && guideRoots.length > 0) {
+    guide = new OperationGuide(guideRoots, { touch: isTouchDevice() });
+  }
+
+  const handleAction = (action: GameAction) => {
+    if (guide && !guide.isComplete) {
+      guide.advanceOn(action);
+    }
+    controller(action);
+    paint();
+    if (guide && guide.isComplete) {
+      guide.hide();
+      markGuideCompleted();
+      guide = null;
+      if (!tickerFn && renderer) {
+        dropAccMs = 0;
+        tickerFn = makeTicker();
+        renderer.addTicker(tickerFn);
+      }
+    }
+  };
+
+  detachInput = attachSources(handleAction, [
+    createKeyboardSource(),
+    createTouchPadSource(),
+  ]);
   dropAccMs = 0;
   paint();
 
@@ -179,7 +240,16 @@ async function startPlay(): Promise<void> {
   }
 
   audio.startBgm();
-  tickerFn = () => {
+  if (guide) {
+    guide.show();
+  } else {
+    tickerFn = makeTicker();
+    renderer.addTicker(tickerFn);
+  }
+}
+
+function makeTicker(): () => void {
+  return () => {
     if (!game || !renderer) return;
     if (game.isGameOver) {
       endPlay();
@@ -198,12 +268,27 @@ async function startPlay(): Promise<void> {
     paint();
     if (game.isGameOver) endPlay();
   };
-  renderer.addTicker(tickerFn);
 }
 
 function endPlay(): void {
   audio.stopBgm();
   const finalScore = game?.score ?? 0;
+  // Hide any lingering guide overlay.
+  for (const id of [
+    "guide-overlay",
+    "guide",
+    "operation-guide",
+    "tutorial",
+    "tutorial-overlay",
+    "guide-modal",
+    "controls-guide",
+  ]) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.hidden = true;
+      el.classList.add("hidden");
+    }
+  }
   stopPlayLoop();
   sendXEvent(finalScore);
   if (game && renderer) {
