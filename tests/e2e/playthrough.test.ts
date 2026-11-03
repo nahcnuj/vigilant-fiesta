@@ -166,7 +166,6 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
     },
   });
 } else {
-  console.log("Skipping E2E tests: sys permission not granted");
 }
 
 // Placeholder to keep test suite non‑empty when E2E tests are skipped.
