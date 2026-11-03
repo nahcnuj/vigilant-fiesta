@@ -254,3 +254,9 @@ btnRetry.disabled = true;
 requestAdsIn(adTitle);
 requestAdsIn(adSideLeft);
 requestAdsIn(adSideRight);
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}

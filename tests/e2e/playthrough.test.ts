@@ -150,9 +150,19 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
       });
     },
   });
-} else {
-  console.log("Skipping E2E tests: sys permission not granted");
-}
 
-// Placeholder to keep test suite non‑empty when E2E tests are skipped.
-Deno.test({ name: "placeholder when E2E skipped", sanitizeResources: false, sanitizeOps: false, fn() {} });
+  Deno.test({
+    name: "pwa: start → hard drop → result",
+    sanitizeResources: false,
+    sanitizeOps: false,
+    async fn() {
+      await withServer(4175, async (ORIGIN, browser) => {
+        const page = await browser.newPage();
+        const errors = attachErrorCollectors(page);
+        await page.goto(`${ORIGIN}/index.html?f=pwa`, { waitUntil: "domcontentloaded", timeout: 30_000 });
+        await page.waitForSelector("#site-title", { timeout: 10_000 });
+        await runPlaythrough(page, hardDropKeyboard, errors);
+      });
+    },
+  });
+}

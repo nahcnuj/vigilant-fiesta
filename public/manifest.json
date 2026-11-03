@@ -1,0 +1,18 @@
+{
+  "name": "Mathch-Three",
+  "short_name": "Mathch-Three",
+  "description": "Match-3 game meets Mathematics",
+  "start_url": "https://www.nahcnuj.work/vigilant-fiesta/?f=pwa",
+  "scope": "https://www.nahcnuj.work/vigilant-fiesta/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon"
+    }
+  ]
+}
