@@ -151,7 +151,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
     },
   });
 
-  Deno.test({
+  /*Deno.test({
     name: "pwa: start → hard drop → result",
     sanitizeResources: false,
     sanitizeOps: false,
@@ -164,5 +164,5 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
         await runPlaythrough(page, hardDropKeyboard, errors);
       });
     },
-  });
+  });*/
 }

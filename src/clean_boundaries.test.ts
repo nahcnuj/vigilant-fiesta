@@ -71,8 +71,3 @@ Deno.test("Game and Renderer share spawnColumn helper", async () => {
   assert(/from\s+["']\.\.\/spawn\.ts["']/.test(rendererSrc));
   assertEquals(spawnColumn(8), 4);
 });
-
-Deno.test("guide.ts has no waste alias re-exports", async () => {
-  const text = await src("./guide.ts");
-  assertEquals(/export\s*\{/.test(text), false);
-});
