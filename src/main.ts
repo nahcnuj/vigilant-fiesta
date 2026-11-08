@@ -341,7 +341,7 @@ requestAdsIn(adSideLeft);
 requestAdsIn(adSideRight);
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+  globalThis.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }
