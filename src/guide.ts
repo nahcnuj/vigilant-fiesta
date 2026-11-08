@@ -69,22 +69,6 @@ export function markGuideCompleted(): void {
   }
 }
 
-export function resetGuideCompletedForTest(): void {
-  try {
-    const ls = (globalThis as { localStorage?: Storage }).localStorage;
-    if (!ls) return;
-    for (const k of GUIDE_STORAGE_KEYS) {
-      try {
-        ls.removeItem(k);
-      } catch {
-        /* ignore */
-      }
-    }
-  } catch {
-    /* ignore */
-  }
-}
-
 /** Advance step index when `action` matches current step. Returns new index or null. */
 export function advanceGuideStep(
   index: number,
