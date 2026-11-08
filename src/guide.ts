@@ -1,10 +1,6 @@
 /** First-play operation guide (tutorial) for Ochimono. */
 
-export type GameAction =
-  | "moveLeft"
-  | "moveRight"
-  | "rotateCW"
-  | "hardDrop";
+import type { GameAction } from "./input/action.ts";
 
 export interface GuideStep {
   action: GameAction;
@@ -20,7 +16,6 @@ export const GUIDE_STEPS: readonly GuideStep[] = [
   { action: "hardDrop", text: "ハードドロップ", touchHint: "上にスワイプ", keyHint: "↑ キー" },
 ];
 
-export const GUIDE_STORAGE_KEY = "ochimono:guide-completed";
 export const GUIDE_STORAGE_KEYS = [
   "ochimono:guide-completed",
   "ochimono-guide-completed",
@@ -85,7 +80,7 @@ export function isGuideComplete(index: number): boolean {
 
 
 /** Map a game action to its primary key cap label. */
-export const GUIDE_KEY_CAPS: Readonly<Record<GameAction, string>> = {
+const GUIDE_KEY_CAPS: Readonly<Record<GameAction, string>> = {
   moveRight: "→",
   moveLeft: "←",
   rotateCW: "↓",
@@ -93,7 +88,7 @@ export const GUIDE_KEY_CAPS: Readonly<Record<GameAction, string>> = {
 };
 
 /** Inline SVG gestures for touch guidance. */
-export const GUIDE_TOUCH_ICONS: Readonly<Record<GameAction, string>> = {
+const GUIDE_TOUCH_ICONS: Readonly<Record<GameAction, string>> = {
   moveRight:
     '<svg class="guide-gesture" viewBox="0 0 48 24" width="48" height="24" aria-hidden="true"><path d="M4 12h32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M30 6l8 6-8 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   moveLeft:

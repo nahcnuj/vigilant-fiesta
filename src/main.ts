@@ -180,28 +180,8 @@ async function startPlay(): Promise<void> {
     },
   });
   const guideMode = isFirstPlay();
-  // Clone guide roots so multiple common selectors work.
   const baseGuideRoot = document.getElementById("guide-overlay");
-  const guideRoots: HTMLElement[] = [];
-  if (baseGuideRoot) {
-    guideRoots.push(baseGuideRoot);
-    for (const id of [
-      "guide",
-      "operation-guide",
-      "tutorial",
-      "tutorial-overlay",
-      "guide-modal",
-      "controls-guide",
-    ]) {
-      let el = document.getElementById(id);
-      if (!el) {
-        el = baseGuideRoot.cloneNode(true) as HTMLElement;
-        el.id = id;
-        baseGuideRoot.parentElement?.appendChild(el);
-      }
-      if (!guideRoots.includes(el)) guideRoots.push(el);
-    }
-  }
+  const guideRoots: HTMLElement[] = baseGuideRoot ? [baseGuideRoot] : [];
 
   const controller = createGameController(game);
   let guide: OperationGuide | null = null;
@@ -281,20 +261,10 @@ function endPlay(): void {
   audio.stopBgm();
   const finalScore = game?.score ?? 0;
   // Hide any lingering guide overlay.
-  for (const id of [
-    "guide-overlay",
-    "guide",
-    "operation-guide",
-    "tutorial",
-    "tutorial-overlay",
-    "guide-modal",
-    "controls-guide",
-  ]) {
-    const el = document.getElementById(id);
-    if (el) {
-      el.hidden = true;
-      el.classList.add("hidden");
-    }
+  const guideEl = document.getElementById("guide-overlay");
+  if (guideEl) {
+    guideEl.hidden = true;
+    guideEl.classList.add("hidden");
   }
   stopPlayLoop();
   sendXEvent(finalScore);
