@@ -219,11 +219,18 @@ async function startPlay(): Promise<void> {
       guide.hide();
       markGuideCompleted();
       guide = null;
-      if (!tickerFn && renderer) {
+      if (game && !game.isGameOver && !tickerFn && renderer) {
         dropAccMs = 0;
         tickerFn = makeTicker();
         renderer.addTicker(tickerFn);
       }
+    }
+    if (game?.isGameOver) {
+      if (guide) {
+        guide.hide();
+        guide = null;
+      }
+      endPlay();
     }
   };
 

@@ -234,6 +234,17 @@ export class OperationGuide {
           }
         }
       }
+      return;
+    }
+    for (const el of this.#hintEls) {
+      el.textContent = "";
+      if (typeof el.innerHTML === "string") {
+        try {
+          el.innerHTML = "";
+        } catch {
+          /* ignore */
+        }
+      }
     }
   }
 }
