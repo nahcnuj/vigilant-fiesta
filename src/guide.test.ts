@@ -116,6 +116,44 @@ Deno.test("OperationGuide uses touch gestures when touch mode is enabled", () =>
   assert(root.hint.innerHTML.includes("<svg"));
 });
 
+
+Deno.test("OperationGuide marks first-play complete when guided operations are performed", () => {
+  const data = new Map<string, string>();
+  const storage = {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      data.set(key, value);
+    },
+  } as unknown as Storage;
+  const target = globalThis as unknown as { localStorage?: Storage };
+  const previous = target.localStorage;
+  Object.defineProperty(globalThis, "localStorage", {
+    value: storage,
+    configurable: true,
+    writable: true,
+  });
+  try {
+    assertEquals(isFirstPlay(), true);
+    const root = new FakeGuideRoot();
+    const guide = new OperationGuide(root, { touch: false });
+
+    guide.show();
+    assertEquals(guide.advanceOn("moveRight"), true);
+    assertEquals(isFirstPlay(), true);
+    assertEquals(guide.advanceOn("moveLeft"), true);
+    assertEquals(guide.advanceOn("rotateCW"), true);
+    assertEquals(guide.advanceOn("hardDrop"), true);
+    assertEquals(guide.isComplete, true);
+    assertEquals(isFirstPlay(), false);
+  } finally {
+    Object.defineProperty(globalThis, "localStorage", {
+      value: previous,
+      configurable: true,
+      writable: true,
+    });
+  }
+});
+
 Deno.test("isFirstPlay becomes false after the guide is completed", () => {
   const data = new Map<string, string>();
   const storage = {
