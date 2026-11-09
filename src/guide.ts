@@ -191,6 +191,7 @@ export class OperationGuide {
     if (next === null) return false;
     this.#index = next;
     if (this.isComplete) {
+      markGuideCompleted();
       this.#update();
       this.hide();
       return true;
