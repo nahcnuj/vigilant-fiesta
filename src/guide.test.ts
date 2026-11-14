@@ -47,8 +47,12 @@ Deno.test("isGuideComplete reports completion at the end of the steps", () => {
 });
 
 Deno.test("keyboard hints use keycaps and touch hints use gestures", () => {
-  assert(guideKeycapHtml("moveRight").includes("<kbd"));
-  assert(guideGestureHtml("moveRight").includes("<svg"));
+  for (const action of ["moveRight", "moveLeft", "rotateCW", "hardDrop"] as const) {
+    assert(guideKeycapHtml(action).includes("<kbd"));
+    assert(guideGestureHtml(action).includes("<svg"));
+    assert(guideKeycapHtml(action).includes("</kbd>"));
+    assert(guideGestureHtml(action).includes("</svg>"));
+  }
 });
 
 Deno.test("OperationGuide walks through steps and hides when complete", () => {
@@ -85,12 +89,32 @@ Deno.test("OperationGuide walks through steps and hides when complete", () => {
 });
 
 Deno.test("OperationGuide uses touch gestures when touch mode is enabled", () => {
-  const { root, hint } = createGuideRoot();
+  const { root, text, step, hint } = createGuideRoot();
   const guide = new OperationGuide(root, { touch: true });
 
   guide.show();
+  assertEquals(root.hidden, false);
+  assertEquals(root.getAttribute("data-guide-step"), "1");
+  assertEquals(root.getAttribute("data-guide-action"), "moveRight");
   assertEquals(root.getAttribute("data-guide-mode"), "touch");
+  assertEquals(text.textContent, "ブロックを右へ移動");
+  assertEquals(step.textContent, "1 / 4");
   assert(hint.innerHTML.includes("<svg"));
+
+  assertEquals(guide.advanceOn("moveRight"), true);
+  assertEquals(root.getAttribute("data-guide-action"), "moveLeft");
+  assertEquals(text.textContent, "ブロックを左へ移動");
+  assert(hint.innerHTML.includes("<svg"));
+
+  assertEquals(guide.advanceOn("moveLeft"), true);
+  assertEquals(guide.advanceOn("rotateCW"), true);
+  assertEquals(guide.advanceOn("hardDrop"), true);
+  assertEquals(guide.isComplete, true);
+  assertEquals(root.hidden, true);
+  assertEquals(text.textContent, "");
+  assertEquals(step.textContent, "");
+  assertEquals(hint.textContent, "");
+  assertEquals(hint.innerHTML, "");
 });
 
 Deno.test("OperationGuide marks first-play complete when guided operations are performed", () => {

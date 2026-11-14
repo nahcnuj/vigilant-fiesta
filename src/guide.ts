@@ -16,15 +16,7 @@ const GUIDE_STEPS: readonly GuideStep[] = [
   { action: "hardDrop", text: "ハードドロップ", touchHint: "上にスワイプ", keyHint: "↑ キー" },
 ];
 
-const GUIDE_STORAGE_KEYS = [
-  "ochimono:guide-completed",
-  "ochimono-guide-completed",
-  "guideCompleted",
-  "operationGuideCompleted",
-  "tutorialCompleted",
-  "hasPlayed",
-  "ochimono:hasPlayed",
-];
+const GUIDE_STORAGE_KEY = "ochimono:guide-completed";
 
 export function isTouchDevice(): boolean {
   try {
@@ -48,7 +40,8 @@ export function isFirstPlay(): boolean {
   try {
     const ls = (globalThis as { localStorage?: Storage }).localStorage;
     if (!ls) return true;
-    return !GUIDE_STORAGE_KEYS.some((k) => ls.getItem(k) === "1" || ls.getItem(k) === "true");
+    const value = ls.getItem(GUIDE_STORAGE_KEY);
+    return value !== "1" && value !== "true";
   } catch {
     return true;
   }
@@ -58,7 +51,7 @@ export function markGuideCompleted(): void {
   try {
     const ls = (globalThis as { localStorage?: Storage }).localStorage;
     if (!ls) return;
-    for (const k of GUIDE_STORAGE_KEYS) ls.setItem(k, "1");
+    ls.setItem(GUIDE_STORAGE_KEY, "1");
   } catch {
     /* ignore */
   }
@@ -117,33 +110,33 @@ export class OperationGuide {
   #index = 0;
   #touch: boolean;
   #roots: HTMLElement[];
-  #textEls: { textContent: string | null }[];
-  #stepEls: { textContent: string | null }[];
-  #hintEls: { textContent: string | null; innerHTML?: string }[];
+  #textEls: HTMLElement[];
+  #stepEls: HTMLElement[];
+  #hintEls: HTMLElement[];
 
   constructor(
-    root: unknown,
+    root: HTMLElement | HTMLElement[] | null | undefined,
     options: OperationGuideOptions = {},
   ) {
     const arr = Array.isArray(root) ? root : root ? [root] : [];
-    this.#roots = arr.filter((x) => x !== null && x !== undefined) as HTMLElement[];
+    this.#roots = arr.filter((x): x is HTMLElement => !!x);
     this.#touch = options.touch ?? isTouchDevice();
-    const q = (r: HTMLElement, sel: string) => {
+    const q = (r: HTMLElement, sel: string): HTMLElement | null => {
       try {
-        return r.querySelector?.(sel) as { textContent: string | null } | null;
+        return r.querySelector(sel) as HTMLElement | null;
       } catch {
         return null;
       }
     };
     this.#textEls = this.#roots
       .map((r) => q(r, "[data-guide-text]"))
-      .filter((x): x is { textContent: string | null } => !!x);
+      .filter((x): x is HTMLElement => !!x);
     this.#stepEls = this.#roots
       .map((r) => q(r, "[data-guide-step]"))
-      .filter((x): x is { textContent: string | null } => !!x);
+      .filter((x): x is HTMLElement => !!x);
     this.#hintEls = this.#roots
       .map((r) => q(r, "[data-guide-hint]"))
-      .filter((x): x is { textContent: string | null; innerHTML?: string } => !!x);
+      .filter((x): x is HTMLElement => !!x);
   }
 
   get stepIndex(): number {
