@@ -18,39 +18,46 @@ const GUIDE_STEPS: readonly GuideStep[] = [
 
 const GUIDE_STORAGE_KEY = "ochimono:guide-completed";
 
+/** Minimal storage surface the guide needs; satisfied by `localStorage`. */
+interface GuideStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+}
+
+/** Resolve browser storage once; access can throw in sandboxed contexts. */
+function browserStorage(): GuideStorage | null {
+  try {
+    return globalThis.localStorage ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export function isTouchDevice(): boolean {
   if (globalThis.matchMedia?.("(pointer: coarse)")?.matches) return true;
   return (globalThis.navigator?.maxTouchPoints ?? 0) > 0;
 }
 
-export function isFirstPlay(): boolean {
-  let ls: Storage | null = null;
+export function isFirstPlay(
+  storage: GuideStorage | null = browserStorage(),
+): boolean {
+  if (!storage) return true;
   try {
-    ls = globalThis.localStorage ?? null;
-  } catch {
-    ls = null;
-  }
-  if (!ls) return true;
-  try {
-    const value = ls.getItem(GUIDE_STORAGE_KEY);
+    const value = storage.getItem(GUIDE_STORAGE_KEY);
     return value !== "1" && value !== "true";
   } catch {
     return true;
   }
 }
 
-export function markGuideCompleted(): void {
-  let ls: Storage | null = null;
+export function markGuideCompleted(
+  storage: GuideStorage | null = browserStorage(),
+): void {
+  if (!storage) return;
   try {
-    ls = globalThis.localStorage ?? null;
+    storage.setItem(GUIDE_STORAGE_KEY, "1");
   } catch {
-    ls = null;
-  }
-  if (!ls) return;
-  try {
-    ls.setItem(GUIDE_STORAGE_KEY, "1");
-  } catch {
-    /* ignore storage errors */
+    /* Storage can be read-only or full; completing the guide must not throw. */
   }
 }
 
@@ -98,11 +105,14 @@ export function guideGestureHtml(action: GameAction): string {
 
 export interface OperationGuideOptions {
   touch?: boolean;
+  /** Inject for tests; defaults to the browser `localStorage`. */
+  storage?: GuideStorage | null;
 }
 
 export class OperationGuide {
   #index = 0;
   #touch: boolean;
+  #storage: GuideStorage | null;
   #roots: HTMLElement[];
   #textEls: HTMLElement[];
   #stepEls: HTMLElement[];
@@ -115,6 +125,9 @@ export class OperationGuide {
     const arr = Array.isArray(root) ? root : root ? [root] : [];
     this.#roots = arr.filter((x): x is HTMLElement => !!x);
     this.#touch = options.touch ?? isTouchDevice();
+    this.#storage = options.storage === undefined
+      ? browserStorage()
+      : options.storage;
     const q = (r: HTMLElement, sel: string): HTMLElement | null =>
       r.querySelector(sel) as HTMLElement | null;
     this.#textEls = this.#roots
@@ -167,7 +180,7 @@ export class OperationGuide {
     if (next === null) return false;
     this.#index = next;
     if (this.isComplete) {
-      markGuideCompleted();
+      markGuideCompleted(this.#storage);
       this.#update();
       this.hide();
       return true;

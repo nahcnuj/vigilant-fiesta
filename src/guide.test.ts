@@ -2,8 +2,6 @@ import { assert, assertEquals } from "https://deno.land/std@0.203.0/testing/asse
 import { parseHTML } from "npm:linkedom@0.18.0";
 import {
   advanceGuideStep,
-  guideGestureHtml,
-  guideKeycapHtml,
   isFirstPlay,
   isGuideComplete,
   markGuideCompleted,
@@ -15,6 +13,16 @@ interface GuideFixture {
   text: HTMLElement;
   step: HTMLElement;
   hint: HTMLElement;
+}
+
+function createMemoryStorage() {
+  const data = new Map<string, string>();
+  return {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => {
+      data.set(key, value);
+    },
+  };
 }
 
 function createGuideRoot(): GuideFixture {
@@ -46,13 +54,28 @@ Deno.test("isGuideComplete reports completion at the end of the steps", () => {
   assertEquals(isGuideComplete(4), true);
 });
 
-Deno.test("keyboard hints use keycaps and touch hints use gestures", () => {
-  for (const action of ["moveRight", "moveLeft", "rotateCW", "hardDrop"] as const) {
-    assert(guideKeycapHtml(action).includes("<kbd"));
-    assert(guideGestureHtml(action).includes("<svg"));
-    assert(guideKeycapHtml(action).includes("</kbd>"));
-    assert(guideGestureHtml(action).includes("</svg>"));
+Deno.test("every step renders a keycap on keyboard and a gesture on touch", () => {
+  const steps = ["moveRight", "moveLeft", "rotateCW", "hardDrop"] as const;
+
+  const keyboard = createGuideRoot();
+  const keyGuide = new OperationGuide(keyboard.root, { touch: false });
+  keyGuide.show();
+  for (const action of steps) {
+    assertEquals(keyGuide.currentAction, action);
+    assert(keyboard.hint.innerHTML.includes("<kbd"));
+    assert(keyGuide.advanceOn(action));
   }
+  assertEquals(keyGuide.isComplete, true);
+
+  const touch = createGuideRoot();
+  const touchGuide = new OperationGuide(touch.root, { touch: true });
+  touchGuide.show();
+  for (const action of steps) {
+    assertEquals(touchGuide.currentAction, action);
+    assert(touch.hint.innerHTML.includes("<svg"));
+    assert(touchGuide.advanceOn(action));
+  }
+  assertEquals(touchGuide.isComplete, true);
 });
 
 Deno.test("OperationGuide walks through steps and hides when complete", () => {
@@ -118,66 +141,24 @@ Deno.test("OperationGuide uses touch gestures when touch mode is enabled", () =>
 });
 
 Deno.test("OperationGuide marks first-play complete when guided operations are performed", () => {
-  const data = new Map<string, string>();
-  const storage = {
-    getItem: (key: string) => data.get(key) ?? null,
-    setItem: (key: string, value: string) => {
-      data.set(key, value);
-    },
-  } as unknown as Storage;
-  const target = globalThis as unknown as { localStorage?: Storage };
-  const previous = target.localStorage;
-  Object.defineProperty(globalThis, "localStorage", {
-    value: storage,
-    configurable: true,
-    writable: true,
-  });
-  try {
-    assertEquals(isFirstPlay(), true);
-    const { root } = createGuideRoot();
-    const guide = new OperationGuide(root, { touch: false });
+  const storage = createMemoryStorage();
+  assertEquals(isFirstPlay(storage), true);
+  const { root } = createGuideRoot();
+  const guide = new OperationGuide(root, { touch: false, storage });
 
-    guide.show();
-    assertEquals(guide.advanceOn("moveRight"), true);
-    assertEquals(isFirstPlay(), true);
-    assertEquals(guide.advanceOn("moveLeft"), true);
-    assertEquals(guide.advanceOn("rotateCW"), true);
-    assertEquals(guide.advanceOn("hardDrop"), true);
-    assertEquals(guide.isComplete, true);
-    assertEquals(isFirstPlay(), false);
-  } finally {
-    Object.defineProperty(globalThis, "localStorage", {
-      value: previous,
-      configurable: true,
-      writable: true,
-    });
-  }
+  guide.show();
+  assertEquals(guide.advanceOn("moveRight"), true);
+  assertEquals(isFirstPlay(storage), true);
+  assertEquals(guide.advanceOn("moveLeft"), true);
+  assertEquals(guide.advanceOn("rotateCW"), true);
+  assertEquals(guide.advanceOn("hardDrop"), true);
+  assertEquals(guide.isComplete, true);
+  assertEquals(isFirstPlay(storage), false);
 });
 
 Deno.test("isFirstPlay becomes false after the guide is completed", () => {
-  const data = new Map<string, string>();
-  const storage = {
-    getItem: (key: string) => data.get(key) ?? null,
-    setItem: (key: string, value: string) => {
-      data.set(key, value);
-    },
-  } as unknown as Storage;
-  const target = globalThis as unknown as { localStorage?: Storage };
-  const previous = target.localStorage;
-  Object.defineProperty(globalThis, "localStorage", {
-    value: storage,
-    configurable: true,
-    writable: true,
-  });
-  try {
-    assertEquals(isFirstPlay(), true);
-    markGuideCompleted();
-    assertEquals(isFirstPlay(), false);
-  } finally {
-    Object.defineProperty(globalThis, "localStorage", {
-      value: previous,
-      configurable: true,
-      writable: true,
-    });
-  }
+  const storage = createMemoryStorage();
+  assertEquals(isFirstPlay(storage), true);
+  markGuideCompleted(storage);
+  assertEquals(isFirstPlay(storage), false);
 });
