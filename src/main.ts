@@ -8,7 +8,6 @@ import { attachSources } from "./input/source.ts";
 import {
   OperationGuide,
   isFirstPlay,
-  markGuideCompleted,
   isTouchDevice,
 } from "./guide.ts";
 import { blockHue, blockLabel, nextPreview } from "./renderer/layout.ts";
@@ -196,8 +195,6 @@ async function startPlay(): Promise<void> {
     controller(action);
     paint();
     if (guide && guide.isComplete) {
-      guide.hide();
-      markGuideCompleted();
       guide = null;
       if (game && !game.isGameOver && !tickerFn && renderer) {
         dropAccMs = 0;

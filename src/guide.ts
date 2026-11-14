@@ -2,7 +2,7 @@
 
 import type { GameAction } from "./input/action.ts";
 
-export interface GuideStep {
+interface GuideStep {
   action: GameAction;
   text: string;
   touchHint: string;
@@ -62,7 +62,7 @@ export function markGuideCompleted(
 }
 
 /** Advance step index when `action` matches current step. Returns new index or null. */
-export function advanceGuideStep(
+function advanceGuideStep(
   index: number,
   action: GameAction,
 ): number | null {
@@ -71,7 +71,7 @@ export function advanceGuideStep(
   return index + 1;
 }
 
-export function isGuideComplete(index: number): boolean {
+function isGuideComplete(index: number): boolean {
   return index >= GUIDE_STEPS.length;
 }
 
@@ -95,15 +95,15 @@ const GUIDE_TOUCH_ICONS: Readonly<Record<GameAction, string>> = {
     '<svg class="guide-gesture" viewBox="0 0 24 48" width="24" height="48" aria-hidden="true"><path d="M12 4v32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M6 30l6 8 6-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
-export function guideKeycapHtml(action: GameAction): string {
+function guideKeycapHtml(action: GameAction): string {
   return `<kbd class="guide-key">${GUIDE_KEY_CAPS[action]}</kbd>`;
 }
 
-export function guideGestureHtml(action: GameAction): string {
+function guideGestureHtml(action: GameAction): string {
   return `<span class="guide-gesture-wrap">${GUIDE_TOUCH_ICONS[action]}</span>`;
 }
 
-export interface OperationGuideOptions {
+interface OperationGuideOptions {
   touch?: boolean;
   /** Inject for tests; defaults to the browser `localStorage`. */
   storage?: GuideStorage | null;

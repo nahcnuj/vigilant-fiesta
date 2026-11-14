@@ -1,12 +1,6 @@
 import { assert, assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import { parseHTML } from "npm:linkedom@0.18.0";
-import {
-  advanceGuideStep,
-  isFirstPlay,
-  isGuideComplete,
-  markGuideCompleted,
-  OperationGuide,
-} from "./guide.ts";
+import { isFirstPlay, markGuideCompleted, OperationGuide } from "./guide.ts";
 
 interface GuideFixture {
   root: HTMLElement;
@@ -39,20 +33,6 @@ function createGuideRoot(): GuideFixture {
   root.append(text, step, hint);
   return { root, text, step, hint };
 }
-
-Deno.test("advanceGuideStep only advances on the current action", () => {
-  assertEquals(advanceGuideStep(0, "moveRight"), 1);
-  assertEquals(advanceGuideStep(0, "hardDrop"), null);
-  assertEquals(advanceGuideStep(3, "hardDrop"), 4);
-  assertEquals(advanceGuideStep(4, "hardDrop"), null);
-  assertEquals(advanceGuideStep(-1, "moveRight"), null);
-});
-
-Deno.test("isGuideComplete reports completion at the end of the steps", () => {
-  assertEquals(isGuideComplete(0), false);
-  assertEquals(isGuideComplete(3), false);
-  assertEquals(isGuideComplete(4), true);
-});
 
 Deno.test("every step renders a keycap on keyboard and a gesture on touch", () => {
   const steps = ["moveRight", "moveLeft", "rotateCW", "hardDrop"] as const;
@@ -102,6 +82,8 @@ Deno.test("OperationGuide walks through steps and hides when complete", () => {
   assertEquals(guide.advanceOn("rotateCW"), true);
   assertEquals(guide.advanceOn("hardDrop"), true);
   assertEquals(guide.isComplete, true);
+  assertEquals(guide.advanceOn("hardDrop"), false);
+  assertEquals(guide.currentAction, null);
   assertEquals(root.hidden, true);
   assertEquals(root.getAttribute("data-guide-action"), null);
   assertEquals(root.getAttribute("data-guide-mode"), null);
