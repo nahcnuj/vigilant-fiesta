@@ -189,7 +189,7 @@ async function startPlay(): Promise<void> {
   }
 
   const handleAction = (action: GameAction) => {
-    if (guide && !guide.isComplete) {
+    if (guide && !guide.isComplete && !game?.isGameOver) {
       guide.advanceOn(action);
     }
     controller(action);
