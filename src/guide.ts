@@ -19,42 +19,21 @@ const GUIDE_STEPS: readonly GuideStep[] = [
 const GUIDE_STORAGE_KEY = "ochimono:guide-completed";
 
 export function isTouchDevice(): boolean {
-  try {
-    const mm = (globalThis as { matchMedia?: (q: string) => { matches: boolean } })
-      .matchMedia;
-    if (mm && mm("(pointer: coarse)").matches) return true;
-  } catch {
-    /* ignore */
-  }
-  try {
-    const nav = (globalThis as { navigator?: { maxTouchPoints?: number } })
-      .navigator;
-    if (nav && (nav.maxTouchPoints ?? 0) > 0) return true;
-  } catch {
-    /* ignore */
-  }
-  return false;
+  if (globalThis.matchMedia?.("(pointer: coarse)")?.matches) return true;
+  return (globalThis.navigator?.maxTouchPoints ?? 0) > 0;
 }
 
 export function isFirstPlay(): boolean {
-  try {
-    const ls = (globalThis as { localStorage?: Storage }).localStorage;
-    if (!ls) return true;
-    const value = ls.getItem(GUIDE_STORAGE_KEY);
-    return value !== "1" && value !== "true";
-  } catch {
-    return true;
-  }
+  const ls = globalThis.localStorage;
+  if (!ls) return true;
+  const value = ls.getItem(GUIDE_STORAGE_KEY);
+  return value !== "1" && value !== "true";
 }
 
 export function markGuideCompleted(): void {
-  try {
-    const ls = (globalThis as { localStorage?: Storage }).localStorage;
-    if (!ls) return;
-    ls.setItem(GUIDE_STORAGE_KEY, "1");
-  } catch {
-    /* ignore */
-  }
+  const ls = globalThis.localStorage;
+  if (!ls) return;
+  ls.setItem(GUIDE_STORAGE_KEY, "1");
 }
 
 /** Advance step index when `action` matches current step. Returns new index or null. */
@@ -70,7 +49,6 @@ export function advanceGuideStep(
 export function isGuideComplete(index: number): boolean {
   return index >= GUIDE_STEPS.length;
 }
-
 
 /** Map a game action to its primary key cap label. */
 const GUIDE_KEY_CAPS: Readonly<Record<GameAction, string>> = {
@@ -104,8 +82,6 @@ export interface OperationGuideOptions {
   touch?: boolean;
 }
 
-type GuideRoot = HTMLElement;
-
 export class OperationGuide {
   #index = 0;
   #touch: boolean;
@@ -121,13 +97,8 @@ export class OperationGuide {
     const arr = Array.isArray(root) ? root : root ? [root] : [];
     this.#roots = arr.filter((x): x is HTMLElement => !!x);
     this.#touch = options.touch ?? isTouchDevice();
-    const q = (r: HTMLElement, sel: string): HTMLElement | null => {
-      try {
-        return r.querySelector(sel) as HTMLElement | null;
-      } catch {
-        return null;
-      }
-    };
+    const q = (r: HTMLElement, sel: string): HTMLElement | null =>
+      r.querySelector(sel) as HTMLElement | null;
     this.#textEls = this.#roots
       .map((r) => q(r, "[data-guide-text]"))
       .filter((x): x is HTMLElement => !!x);
@@ -154,22 +125,22 @@ export class OperationGuide {
 
   show(): void {
     for (const r of this.#roots) {
-      try { r.hidden = false; } catch { /* ignore */ }
-      try { r.classList?.remove("hidden"); } catch { /* ignore */ }
-      try { r.setAttribute?.("data-guide-step", String(this.#index + 1)); } catch { /* ignore */ }
-      try { r.setAttribute?.("data-guide-action", this.currentAction ?? ""); } catch { /* ignore */ }
-      try { r.setAttribute?.("data-guide-mode", this.#touch ? "touch" : "keys"); } catch { /* ignore */ }
+      r.hidden = false;
+      r.classList.remove("hidden");
+      r.setAttribute("data-guide-step", String(this.#index + 1));
+      r.setAttribute("data-guide-action", this.currentAction ?? "");
+      r.setAttribute("data-guide-mode", this.#touch ? "touch" : "keys");
     }
     this.#update();
   }
 
   hide(): void {
     for (const r of this.#roots) {
-      try { r.hidden = true; } catch { /* ignore */ }
-      try { r.classList?.add("hidden"); } catch { /* ignore */ }
-      try { r.removeAttribute?.("data-guide-step"); } catch { /* ignore */ }
-      try { r.removeAttribute?.("data-guide-action"); } catch { /* ignore */ }
-      try { r.removeAttribute?.("data-guide-mode"); } catch { /* ignore */ }
+      r.hidden = true;
+      r.classList.add("hidden");
+      r.removeAttribute("data-guide-step");
+      r.removeAttribute("data-guide-action");
+      r.removeAttribute("data-guide-mode");
     }
   }
 
@@ -184,9 +155,9 @@ export class OperationGuide {
       return true;
     }
     for (const r of this.#roots) {
-      try { r.setAttribute?.("data-guide-step", String(this.#index + 1)); } catch { /* ignore */ }
-      try { r.setAttribute?.("data-guide-action", this.currentAction ?? ""); } catch { /* ignore */ }
-      try { r.setAttribute?.("data-guide-mode", this.#touch ? "touch" : "keys"); } catch { /* ignore */ }
+      r.setAttribute("data-guide-step", String(this.#index + 1));
+      r.setAttribute("data-guide-action", this.currentAction ?? "");
+      r.setAttribute("data-guide-mode", this.#touch ? "touch" : "keys");
     }
     this.#update();
     return true;
@@ -209,25 +180,13 @@ export class OperationGuide {
         : guideKeycapHtml(step.action);
       for (const el of this.#hintEls) {
         el.textContent = plain;
-        if (typeof el.innerHTML === "string") {
-          try {
-            el.innerHTML = html;
-          } catch {
-            /* ignore */
-          }
-        }
+        el.innerHTML = html;
       }
       return;
     }
     for (const el of this.#hintEls) {
       el.textContent = "";
-      if (typeof el.innerHTML === "string") {
-        try {
-          el.innerHTML = "";
-        } catch {
-          /* ignore */
-        }
-      }
+      el.innerHTML = "";
     }
   }
 }
