@@ -24,16 +24,34 @@ export function isTouchDevice(): boolean {
 }
 
 export function isFirstPlay(): boolean {
-  const ls = globalThis.localStorage;
+  let ls: Storage | null = null;
+  try {
+    ls = globalThis.localStorage ?? null;
+  } catch {
+    ls = null;
+  }
   if (!ls) return true;
-  const value = ls.getItem(GUIDE_STORAGE_KEY);
-  return value !== "1" && value !== "true";
+  try {
+    const value = ls.getItem(GUIDE_STORAGE_KEY);
+    return value !== "1" && value !== "true";
+  } catch {
+    return true;
+  }
 }
 
 export function markGuideCompleted(): void {
-  const ls = globalThis.localStorage;
+  let ls: Storage | null = null;
+  try {
+    ls = globalThis.localStorage ?? null;
+  } catch {
+    ls = null;
+  }
   if (!ls) return;
-  ls.setItem(GUIDE_STORAGE_KEY, "1");
+  try {
+    ls.setItem(GUIDE_STORAGE_KEY, "1");
+  } catch {
+    /* ignore storage errors */
+  }
 }
 
 /** Advance step index when `action` matches current step. Returns new index or null. */
