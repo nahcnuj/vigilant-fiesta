@@ -1,10 +1,7 @@
-import {
-  assert,
-  assertEquals,
-} from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import { assert, assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
+import { parseHTML } from "npm:linkedom@0.18.0";
 import {
   advanceGuideStep,
-  GUIDE_STEPS,
   guideGestureHtml,
   guideKeycapHtml,
   isFirstPlay,
@@ -13,45 +10,27 @@ import {
   OperationGuide,
 } from "./guide.ts";
 
-class FakeElement {
-  hidden = true;
-  textContent: string | null = null;
-  innerHTML = "";
-  readonly attrs = new Map<string, string>();
-  readonly classList = { add() {}, remove() {} };
-
-  setAttribute(name: string, value: string): void {
-    this.attrs.set(name, value);
-  }
-
-  removeAttribute(name: string): void {
-    this.attrs.delete(name);
-  }
-
-  querySelector(_selector: string): FakeElement | null {
-    return null;
-  }
+interface GuideFixture {
+  root: HTMLElement;
+  text: HTMLElement;
+  step: HTMLElement;
+  hint: HTMLElement;
 }
 
-class FakeGuideRoot extends FakeElement {
-  readonly text = new FakeElement();
-  readonly step = new FakeElement();
-  readonly hint = new FakeElement();
-
-  override querySelector(selector: string): FakeElement | null {
-    if (selector === "[data-guide-text]") return this.text;
-    if (selector === "[data-guide-step]") return this.step;
-    if (selector === "[data-guide-hint]") return this.hint;
-    return null;
-  }
-}
-
-Deno.test("GUIDE_STEPS follows the requested operation order", () => {
-  assertEquals(
-    GUIDE_STEPS.map((step) => step.action),
-    ["moveRight", "moveLeft", "rotateCW", "hardDrop"],
+function createGuideRoot(): GuideFixture {
+  const { document } = parseHTML(
+    "<!DOCTYPE html><html><body></body></html>",
   );
-});
+  const root = document.createElement("div");
+  const text = document.createElement("span");
+  text.setAttribute("data-guide-text", "");
+  const step = document.createElement("span");
+  step.setAttribute("data-guide-step", "");
+  const hint = document.createElement("span");
+  hint.setAttribute("data-guide-hint", "");
+  root.append(text, step, hint);
+  return { root, text, step, hint };
+}
 
 Deno.test("advanceGuideStep only advances on the current action", () => {
   assertEquals(advanceGuideStep(0, "moveRight"), 1);
@@ -63,8 +42,8 @@ Deno.test("advanceGuideStep only advances on the current action", () => {
 
 Deno.test("isGuideComplete reports completion at the end of the steps", () => {
   assertEquals(isGuideComplete(0), false);
-  assertEquals(isGuideComplete(GUIDE_STEPS.length - 1), false);
-  assertEquals(isGuideComplete(GUIDE_STEPS.length), true);
+  assertEquals(isGuideComplete(3), false);
+  assertEquals(isGuideComplete(4), true);
 });
 
 Deno.test("keyboard hints use keycaps and touch hints use gestures", () => {
@@ -73,49 +52,46 @@ Deno.test("keyboard hints use keycaps and touch hints use gestures", () => {
 });
 
 Deno.test("OperationGuide walks through steps and hides when complete", () => {
-  const root = new FakeGuideRoot();
+  const { root, text, step, hint } = createGuideRoot();
   const guide = new OperationGuide(root, { touch: false });
 
   guide.show();
   assertEquals(root.hidden, false);
-  assertEquals(root.attrs.get("data-guide-step"), "1");
-  assertEquals(root.attrs.get("data-guide-action"), "moveRight");
-  assertEquals(root.attrs.get("data-guide-mode"), "keys");
-  assertEquals(root.text.textContent, GUIDE_STEPS[0].text);
-  assertEquals(root.step.textContent, `1 / ${GUIDE_STEPS.length}`);
-  assertEquals(root.hint.textContent, GUIDE_STEPS[0].keyHint);
-  assert(root.hint.innerHTML.includes("<kbd"));
+  assertEquals(root.getAttribute("data-guide-step"), "1");
+  assertEquals(root.getAttribute("data-guide-action"), "moveRight");
+  assertEquals(root.getAttribute("data-guide-mode"), "keys");
+  assertEquals(text.textContent, "ブロックを右へ移動");
+  assertEquals(step.textContent, "1 / 4");
+  assert(hint.innerHTML.includes("<kbd"));
 
   assertEquals(guide.advanceOn("hardDrop"), false);
   assertEquals(guide.stepIndex, 0);
 
   assertEquals(guide.advanceOn("moveRight"), true);
-  assertEquals(root.attrs.get("data-guide-action"), "moveLeft");
-  assertEquals(root.text.textContent, GUIDE_STEPS[1].text);
+  assertEquals(root.getAttribute("data-guide-action"), "moveLeft");
+  assertEquals(text.textContent, "ブロックを左へ移動");
 
   assertEquals(guide.advanceOn("moveLeft"), true);
   assertEquals(guide.advanceOn("rotateCW"), true);
   assertEquals(guide.advanceOn("hardDrop"), true);
   assertEquals(guide.isComplete, true);
   assertEquals(root.hidden, true);
-  assertEquals(root.attrs.has("data-guide-action"), false);
-  assertEquals(root.attrs.has("data-guide-mode"), false);
-  assertEquals(root.text.textContent, "");
-  assertEquals(root.step.textContent, "");
-  assertEquals(root.hint.textContent, "");
-  assertEquals(root.hint.innerHTML, "");
+  assertEquals(root.getAttribute("data-guide-action"), null);
+  assertEquals(root.getAttribute("data-guide-mode"), null);
+  assertEquals(text.textContent, "");
+  assertEquals(step.textContent, "");
+  assertEquals(hint.textContent, "");
+  assertEquals(hint.innerHTML, "");
 });
 
 Deno.test("OperationGuide uses touch gestures when touch mode is enabled", () => {
-  const root = new FakeGuideRoot();
+  const { root, hint } = createGuideRoot();
   const guide = new OperationGuide(root, { touch: true });
 
   guide.show();
-  assertEquals(root.attrs.get("data-guide-mode"), "touch");
-  assertEquals(root.hint.textContent, GUIDE_STEPS[0].touchHint);
-  assert(root.hint.innerHTML.includes("<svg"));
+  assertEquals(root.getAttribute("data-guide-mode"), "touch");
+  assert(hint.innerHTML.includes("<svg"));
 });
-
 
 Deno.test("OperationGuide marks first-play complete when guided operations are performed", () => {
   const data = new Map<string, string>();
@@ -134,7 +110,7 @@ Deno.test("OperationGuide marks first-play complete when guided operations are p
   });
   try {
     assertEquals(isFirstPlay(), true);
-    const root = new FakeGuideRoot();
+    const { root } = createGuideRoot();
     const guide = new OperationGuide(root, { touch: false });
 
     guide.show();

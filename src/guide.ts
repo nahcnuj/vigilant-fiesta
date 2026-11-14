@@ -111,18 +111,12 @@ export interface OperationGuideOptions {
   touch?: boolean;
 }
 
-type RootLike = {
-  hidden?: boolean;
-  classList?: { add(...c: string[]): void; remove(...c: string[]): void };
-  setAttribute?: (name: string, value: string) => void;
-  removeAttribute?: (name: string) => void;
-  querySelector?: (sel: string) => unknown;
-};
+type GuideRoot = HTMLElement;
 
 export class OperationGuide {
   #index = 0;
   #touch: boolean;
-  #roots: RootLike[];
+  #roots: HTMLElement[];
   #textEls: { textContent: string | null }[];
   #stepEls: { textContent: string | null }[];
   #hintEls: { textContent: string | null; innerHTML?: string }[];
@@ -132,9 +126,9 @@ export class OperationGuide {
     options: OperationGuideOptions = {},
   ) {
     const arr = Array.isArray(root) ? root : root ? [root] : [];
-    this.#roots = arr.filter((x) => x !== null && x !== undefined) as RootLike[];
+    this.#roots = arr.filter((x) => x !== null && x !== undefined) as HTMLElement[];
     this.#touch = options.touch ?? isTouchDevice();
-    const q = (r: RootLike, sel: string) => {
+    const q = (r: HTMLElement, sel: string) => {
       try {
         return r.querySelector?.(sel) as { textContent: string | null } | null;
       } catch {
