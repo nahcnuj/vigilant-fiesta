@@ -54,32 +54,63 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
     return errors;
   }
 
-  async function hardDropKeyboard(page: any): Promise<void> {
-    await page.evaluate(() => {
-      globalThis.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowUp", code: "ArrowUp", bubbles: true, cancelable: true }));
-    });
+  async function pressKey(page: any, key: string): Promise<void> {
+    await page.evaluate((key: string) => {
+      globalThis.dispatchEvent(new KeyboardEvent("keydown", { key, code: key, bubbles: true, cancelable: true }));
+    }, key);
   }
 
-  async function hardDropTouch(page: any): Promise<void> {
+  async function hardDropKeyboard(page: any): Promise<void> {
+    await pressKey(page, "ArrowUp");
+  }
+
+  async function swipeTouch(page: any, dx: number, dy: number): Promise<void> {
     const box = await page.locator("#game-container").boundingBox();
     if (!box) throw new Error("#game-container has no box");
     const x = box.x + box.width / 2;
-    const y0 = box.y + box.height * 0.7;
-    const y1 = box.y + box.height * 0.25;
-    await page.evaluate(({ x, y0, y1 }: { x: number; y0: number; y1: number }) => {
+    const y = box.y + box.height / 2;
+    await page.evaluate(({ x, y, dx, dy }: { x: number; y: number; dx: number; dy: number }) => {
       const el = document.getElementById("game-container");
       if (!el) return;
-      el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, clientX: x, clientY: y0, pointerType: "touch", button: 0, pointerId: 1 }));
-      el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, cancelable: true, clientX: x, clientY: y1, pointerType: "touch", button: 0, pointerId: 1 }));
-    }, { x, y0, y1 });
+      el.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true, clientX: x, clientY: y, pointerType: "touch", button: 0, pointerId: 1 }));
+      el.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, cancelable: true, clientX: x + dx, clientY: y + dy, pointerType: "touch", button: 0, pointerId: 1 }));
+    }, { x, y, dx, dy });
   }
 
-  async function runPlaythrough(page: any, hardDrop: (page: any) => Promise<void>, errors: string[]): Promise<void> {
+  async function hardDropTouch(page: any): Promise<void> {
+    await swipeTouch(page, 0, -100);
+  }
+
+  async function completeGuideKeyboard(page: any): Promise<void> {
+    if (!(await page.locator("#guide-overlay:not([hidden])").count())) return;
+    await pressKey(page, "ArrowRight");
+    await pressKey(page, "ArrowLeft");
+    await pressKey(page, "ArrowDown");
+    await pressKey(page, "ArrowUp");
+    await page.locator("#guide-overlay").waitFor({ state: "hidden", timeout: 5_000 });
+  }
+
+  async function completeGuideTouch(page: any): Promise<void> {
+    if (!(await page.locator("#guide-overlay:not([hidden])").count())) return;
+    await swipeTouch(page, 60, 0);
+    await swipeTouch(page, -60, 0);
+    await swipeTouch(page, 0, 0);
+    await swipeTouch(page, 0, -100);
+    await page.locator("#guide-overlay").waitFor({ state: "hidden", timeout: 5_000 });
+  }
+
+  async function runPlaythrough(
+    page: any,
+    hardDrop: (page: any) => Promise<void>,
+    completeGuide: (page: any) => Promise<void>,
+    errors: string[],
+  ): Promise<void> {
     await assertTitleHasScore(page, false);
     await page.locator("#btn-start").click({ timeout: 15_000 });
     await page.waitForSelector("#screen-playing:not([hidden])", { timeout: 15_000 });
     await page.waitForSelector("#game-container canvas", { timeout: 30_000 });
     await assertTitleHasScore(page, false);
+    await completeGuide(page);
     const deadline = Date.now() + 60_000;
     while (Date.now() < deadline) {
       if (await page.locator("#result-overlay:not([hidden])").count()) break;
@@ -122,7 +153,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
         const errors = attachErrorCollectors(page);
         await page.goto(`${ORIGIN}/index.html?e2e=1`, { waitUntil: "domcontentloaded", timeout: 30_000 });
         await page.waitForSelector("#site-title", { timeout: 10_000 });
-        await runPlaythrough(page, hardDropKeyboard, errors);
+        await runPlaythrough(page, hardDropKeyboard, completeGuideKeyboard, errors);
         await page.waitForFunction(() => {
           const b = document.getElementById("btn-retry");
           return b instanceof HTMLButtonElement && !b.disabled;
@@ -145,7 +176,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
         const errors = attachErrorCollectors(page);
         await page.goto(`${ORIGIN}/index.html?e2e=1`, { waitUntil: "domcontentloaded", timeout: 30_000 });
         await page.waitForSelector("#site-title", { timeout: 10_000 });
-        await runPlaythrough(page, hardDropTouch, errors);
+        await runPlaythrough(page, hardDropTouch, completeGuideTouch, errors);
         await context.close();
       });
     },
@@ -161,7 +192,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
         const errors = attachErrorCollectors(page);
         await page.goto(`${ORIGIN}/index.html?f=pwa`, { waitUntil: "domcontentloaded", timeout: 30_000 });
         await page.waitForSelector("#site-title", { timeout: 10_000 });
-        await runPlaythrough(page, hardDropKeyboard, errors);
+        await runPlaythrough(page, hardDropKeyboard, completeGuideKeyboard, errors);
       });
     },
   });*/

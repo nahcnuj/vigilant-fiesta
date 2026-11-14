@@ -1,6 +1,15 @@
 import { Game, type GameOptions } from "./game.ts";
 import { Renderer } from "./renderer/index.ts";
-import { setupInput } from "./input/index.ts";
+import type { GameAction } from "./input/action.ts";
+import { createGameController } from "./input/controller.ts";
+import { createKeyboardSource } from "./input/keyboard.ts";
+import { createTouchPadSource } from "./input/touch.ts";
+import { attachSources } from "./input/source.ts";
+import {
+  OperationGuide,
+  isFirstPlay,
+  isTouchDevice,
+} from "./guide.ts";
 import { blockHue, blockLabel, nextPreview } from "./renderer/layout.ts";
 import { blockFillCss } from "./renderer/fill.ts";
 import { audio } from "./audio.ts";
@@ -169,7 +178,43 @@ async function startPlay(): Promise<void> {
       }
     },
   });
-  detachInput = setupInput(game);
+  const guideMode = isFirstPlay();
+  const baseGuideRoot = document.getElementById("guide-overlay");
+  const guideRoots: HTMLElement[] = baseGuideRoot ? [baseGuideRoot] : [];
+
+  const controller = createGameController(game);
+  let guide: OperationGuide | null = null;
+  if (guideMode && guideRoots.length > 0) {
+    guide = new OperationGuide(guideRoots, { touch: isTouchDevice() });
+  }
+
+  const handleAction = (action: GameAction) => {
+    if (guide && !guide.isComplete && !game?.isGameOver) {
+      guide.advanceOn(action);
+    }
+    controller(action);
+    paint();
+    if (guide && guide.isComplete) {
+      guide = null;
+      if (game && !game.isGameOver && !tickerFn && renderer) {
+        dropAccMs = 0;
+        tickerFn = makeTicker();
+        renderer.addTicker(tickerFn);
+      }
+    }
+    if (game?.isGameOver) {
+      if (guide) {
+        guide.hide();
+        guide = null;
+      }
+      endPlay();
+    }
+  };
+
+  detachInput = attachSources(handleAction, [
+    createKeyboardSource(),
+    createTouchPadSource(),
+  ]);
   dropAccMs = 0;
   paint();
 
@@ -179,7 +224,16 @@ async function startPlay(): Promise<void> {
   }
 
   audio.startBgm();
-  tickerFn = () => {
+  if (guide) {
+    guide.show();
+  } else {
+    tickerFn = makeTicker();
+    renderer.addTicker(tickerFn);
+  }
+}
+
+function makeTicker(): () => void {
+  return () => {
     if (!game || !renderer) return;
     if (game.isGameOver) {
       endPlay();
@@ -198,12 +252,17 @@ async function startPlay(): Promise<void> {
     paint();
     if (game.isGameOver) endPlay();
   };
-  renderer.addTicker(tickerFn);
 }
 
 function endPlay(): void {
   audio.stopBgm();
   const finalScore = game?.score ?? 0;
+  // Hide any lingering guide overlay.
+  const guideEl = document.getElementById("guide-overlay");
+  if (guideEl) {
+    guideEl.hidden = true;
+    guideEl.classList.add("hidden");
+  }
   stopPlayLoop();
   sendXEvent(finalScore);
   if (game && renderer) {
@@ -256,7 +315,7 @@ requestAdsIn(adSideLeft);
 requestAdsIn(adSideRight);
 
 if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
+  globalThis.addEventListener("load", () => {
     navigator.serviceWorker.register("sw.js").catch(() => {});
   });
 }

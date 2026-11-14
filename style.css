@@ -577,3 +577,77 @@ button:disabled {
   justify-content: center;
   aspect-ratio: auto;
 }
+
+/* Operation guide overlay */
+.guide-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  pointer-events: none;
+}
+.guide-overlay.hidden {
+  display: none;
+}
+.guide-card {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(94, 200, 255, 0.6);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  text-align: center;
+  color: #e2e8f0;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(6px);
+  min-width: 180px;
+}
+.guide-step {
+  font-size: 0.85rem;
+  opacity: 0.8;
+  margin: 0 0 0.25rem;
+}
+.guide-text {
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+}
+.guide-hint {
+  font-size: 1rem;
+  color: #5ec8ff;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.5rem;
+}
+/* Keyboard keycap */
+.guide-key {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  font-family: inherit;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  background: linear-gradient(180deg, #3a4a5c 0%, #1f2937 100%);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom-width: 3px;
+  border-radius: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  user-select: none;
+}
+/* Touch gesture icon */
+.guide-gesture {
+  color: #5ec8ff;
+  filter: drop-shadow(0 0 4px rgba(94, 200, 255, 0.5));
+}
+.guide-gesture-wrap {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
