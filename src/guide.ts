@@ -12,7 +12,7 @@ interface GuideStep {
 const GUIDE_STEPS: readonly GuideStep[] = [
   { action: "moveRight", text: "ブロックを右へ移動", touchHint: "右にスワイプ", keyHint: "→ キー" },
   { action: "moveLeft", text: "ブロックを左へ移動", touchHint: "左にスワイプ", keyHint: "← キー" },
-  { action: "rotateCW", text: "ブロックを回転", touchHint: "タップ", keyHint: "↓ キー" },
+  { action: "rotateCW", text: "ブロックを回転", touchHint: "タップ / 下にスワイプ", keyHint: "↓ キー" },
   { action: "hardDrop", text: "ハードドロップ", touchHint: "上にスワイプ", keyHint: "↑ キー" },
 ];
 
