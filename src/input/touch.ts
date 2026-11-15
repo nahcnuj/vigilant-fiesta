@@ -78,7 +78,8 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
         } else if (adx > ady) {
           action = dx < 0 ? "moveLeft" : "moveRight";
         } else {
-          action = dy < 0 ? "hardDrop" : "rotateCW";
+          // Tapping or swiping down rotates the falling pair clockwise.
+          action = "rotateCW";
         }
         e.preventDefault?.();
         handler(action);

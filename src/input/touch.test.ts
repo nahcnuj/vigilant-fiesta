@@ -66,7 +66,7 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
   const seen: GameAction[] = [];
   const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
 
-  swipe(root, 50, 50, 52, 51); // tap
+  swipe(root, 50, 50, 52, 51); // tap → rotateCW
   swipe(root, 100, 100, 40, 100); // left
   swipe(root, 100, 100, 160, 100); // right
   swipe(root, 100, 200, 100, 100); // up → hardDrop
@@ -75,10 +75,12 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
   swipe(root, 100, 200, 110, 120);
   // only ady small → horizontal
   swipe(root, 100, 100, 180, 110);
-  // adx === ady → else vertical (dy>0 → rotate)
+  // adx === ady, pointing down → rotateCW
   swipe(root, 100, 100, 150, 150);
   // upward swipe with horizontal drift → hardDrop (easier to trigger)
   swipe(root, 100, 100, 180, 40);
+  // downward swipe with horizontal drift → rotateCW
+  swipe(root, 100, 100, 180, 180);
 
   assertEquals(seen, [
     "rotateCW",
@@ -90,6 +92,7 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
     "moveRight",
     "rotateCW",
     "hardDrop",
+    "rotateCW",
   ]);
   d();
 });
@@ -120,6 +123,39 @@ Deno.test("touch: upward flicks with horizontal dominance are hard drop (easier 
     const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
     swipe(root, x0, y0, x1, y1);
     assertEquals(seen, ["hardDrop"], `swipe ${x0},${y0}->${x1},${y1}`);
+    d();
+  }
+});
+
+Deno.test("touch: downward swipes rotate (tap also rotates)", () => {
+  // Hard drop is the upward swipe; a downward swipe rotates the pair just
+  // like a tap, as described by the guide.
+  const cases: [number, number, number, number][] = [
+    [100, 100, 100, 160], // straight down
+    [100, 100, 150, 150], // exact diagonal
+    [100, 100, 120, 180], // down, vertical-dominant
+  ];
+  for (const [x0, y0, x1, y1] of cases) {
+    const root = boardSurface();
+    const seen: GameAction[] = [];
+    const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+    swipe(root, x0, y0, x1, y1);
+    assertEquals(seen, ["rotateCW"], `swipe ${x0},${y0}->${x1},${y1}`);
+    d();
+  }
+});
+
+Deno.test("touch: downward swipes with horizontal dominance stay sideways", () => {
+  const cases: [number, number, number, number, GameAction][] = [
+    [100, 100, 200, 180, "moveRight"],
+    [200, 100, 40, 180, "moveLeft"],
+  ];
+  for (const [x0, y0, x1, y1, expected] of cases) {
+    const root = boardSurface();
+    const seen: GameAction[] = [];
+    const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+    swipe(root, x0, y0, x1, y1);
+    assertEquals(seen, [expected], `swipe ${x0},${y0}->${x1},${y1}`);
     d();
   }
 });

@@ -44,12 +44,12 @@ DOM の `data-screen` / `hidden` で E2E から観測する。
 
 操作はすべて **`GameAction`** に正規化する。
 
-| GameAction | 現行キーボード | 画面上ボタン（想定） |
-|------------|----------------|----------------------|
-| `moveLeft` | ← | 「左へ」 |
-| `moveRight` | → | 「右へ」 |
-| `rotateCW` | ↓ | 「回転」 |
-| `hardDrop` | ↑ | 「一気に落とす」 |
+| GameAction | 現行キーボード | 現行タッチ | 画面上ボタン（想定） |
+|------------|----------------|------------|----------------------|
+| `moveLeft` | ← | 左スワイプ | 「左へ」 |
+| `moveRight` | → | 右スワイプ | 「右へ」 |
+| `rotateCW` | ↓ | タップ / 下スワイプ | 「回転」 |
+| `hardDrop` | ↑ | 上スワイプ | 「一気に落とす」 |
 
 ```
 InputSource (keyboard / on-screen buttons / …)
@@ -61,7 +61,7 @@ ActionHandler = createGameController(game)
     Game の public API
 ```
 
-現状: `setupInput(game)` はキーボードのみ。
+現状: `main.ts` はキーボード（`createKeyboardSource`）と盤面のタッチ（`createTouchPadSource`）を接続する。
 
 ## レベルと出現分布
 
