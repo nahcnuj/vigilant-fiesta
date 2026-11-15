@@ -667,10 +667,6 @@ button:disabled {
   0% { transform: translateX(6px); opacity: 0.4; }
   100% { transform: translateX(-6px); opacity: 1; }
 }
-@keyframes guide-swipe-up {
-  0% { transform: translateY(6px); opacity: 0.4; }
-  100% { transform: translateY(-6px); opacity: 1; }
-}
 @keyframes guide-swipe-down {
   0% { transform: translateY(-6px); opacity: 0.4; }
   100% { transform: translateY(6px); opacity: 1; }
@@ -686,7 +682,7 @@ button:disabled {
   animation: guide-swipe-left 0.9s ease-in-out infinite alternate;
 }
 .guide-gesture-wrap--hardDrop .guide-gesture {
-  animation: guide-swipe-up 0.9s ease-in-out infinite alternate;
+  animation: guide-swipe-down 0.9s ease-in-out infinite alternate;
 }
 .guide-gesture-wrap--rotateCW .guide-gesture {
   animation: guide-tap 0.9s ease-in-out infinite;

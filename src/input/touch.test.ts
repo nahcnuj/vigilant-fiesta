@@ -66,29 +66,32 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
   const seen: GameAction[] = [];
   const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
 
-  swipe(root, 50, 50, 52, 51); // tap
+  swipe(root, 50, 50, 52, 51); // tap → rotateCW
   swipe(root, 100, 100, 40, 100); // left
   swipe(root, 100, 100, 160, 100); // right
-  swipe(root, 100, 200, 100, 100); // up → hardDrop
-  swipe(root, 100, 100, 100, 160); // down → rotateCW
+  swipe(root, 100, 200, 100, 100); // up → hardDrop (kept for compatibility)
+  swipe(root, 100, 100, 100, 160); // down → hardDrop (matches the guide)
   // only adx small → vertical
   swipe(root, 100, 200, 110, 120);
   // only ady small → horizontal
   swipe(root, 100, 100, 180, 110);
-  // adx === ady → else vertical (dy>0 → rotate)
+  // adx === ady, pointing down → hardDrop
   swipe(root, 100, 100, 150, 150);
   // upward swipe with horizontal drift → hardDrop (easier to trigger)
   swipe(root, 100, 100, 180, 40);
+  // downward swipe with horizontal drift → hardDrop as well
+  swipe(root, 100, 100, 180, 180);
 
   assertEquals(seen, [
     "rotateCW",
     "moveLeft",
     "moveRight",
     "hardDrop",
-    "rotateCW",
+    "hardDrop",
     "hardDrop",
     "moveRight",
-    "rotateCW",
+    "hardDrop",
+    "hardDrop",
     "hardDrop",
   ]);
   d();
@@ -113,6 +116,25 @@ Deno.test("touch: upward flicks with horizontal dominance are hard drop (easier 
     [100, 200, 260, 120], // up-right, strongly horizontal-dominant
     [200, 200, 40, 120], // up-left, horizontal-dominant
     [100, 300, 180, 276], // short upward with horizontal drift
+  ];
+  for (const [x0, y0, x1, y1] of cases) {
+    const root = boardSurface();
+    const seen: GameAction[] = [];
+    const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+    swipe(root, x0, y0, x1, y1);
+    assertEquals(seen, ["hardDrop"], `swipe ${x0},${y0}->${x1},${y1}`);
+    d();
+  }
+});
+
+Deno.test("touch: downward swipes are hard drop (guide shows a down arrow)", () => {
+  // The operation guide tells players to swipe down for hard drop, so a
+  // downward swipe must trigger it even when it is diagonal.
+  const cases: [number, number, number, number][] = [
+    [100, 100, 100, 160], // straight down
+    [100, 100, 180, 180], // down-right, horizontal-dominant
+    [200, 100, 40, 180], // down-left, horizontal-dominant
+    [100, 100, 150, 150], // exact diagonal
   ];
   for (const [x0, y0, x1, y1] of cases) {
     const root = boardSurface();
