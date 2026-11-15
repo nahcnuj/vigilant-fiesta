@@ -89,8 +89,8 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
       };
 
       if (root.style) root.style.touchAction = "none";
-      root.addEventListener("pointerdown", onDown);
-      root.addEventListener("pointerup", onUp);
+      root.addEventListener("pointerdown", onDown, { passive: false });
+      root.addEventListener("pointerup", onUp, { passive: false });
       root.addEventListener("pointercancel", onCancel);
 
       return () => {
