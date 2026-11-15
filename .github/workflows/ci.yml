@@ -87,9 +87,8 @@ jobs:
       - name: Stage site
         run: |
           mkdir -p _site/dist
-          cp index.html style.css _site/
           cp dist/main.js _site/dist/
-          if [ -d public ]; then cp -a public/. _site/; fi
+          cp -a public/. _site/
       - uses: actions/upload-artifact@v7
         with:
           name: site

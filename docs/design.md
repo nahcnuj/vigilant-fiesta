@@ -8,7 +8,7 @@
 
 | 層 | 役割 |
 |----|------|
-| `index.html` + `style.css` | シェル（タイトル / プレイ / 結果） |
+| `public/index.html` + `public/style.css` | シェル（タイトル / プレイ / 結果） |
 | `src/main.ts` | 画面遷移と Game + Renderer + Input の配線 |
 | `src/game.ts` | ミュータブルなセッション（落下・操作・スコア） |
 | `src/board.ts` / `piece.ts` / `formula.ts` | 盤・2 ブロックペア・数式検出 |
