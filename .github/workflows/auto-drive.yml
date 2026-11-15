@@ -1,0 +1,35 @@
+name: Auto-drive
+
+# When an issue is opened or reopened, or a pull request review is
+# submitted, edited, or dismissed in this repository, call the conahcnuj
+# reusable issue-driver workflow to attempt to resolve it.
+# This replaces the inline auto-drive job that was previously in
+# stream-health-check.yml, making auto-drive available for any issue.
+
+on:
+  # issues:
+  #   types: [opened, reopened]
+  pull_request_review:
+    types: [submitted, edited, dismissed]
+  workflow_dispatch:
+    inputs:
+      number:
+        description: Issue or pull request number to drive
+        required: true
+        type: number
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  auto-drive:
+    name: Auto-drive issue
+    uses: nahcnuj/conahcnuj/.github/workflows/issue-driver.yml@4da0270b520b56bdedbb5d2071a315d429e46744
+    with:
+      number: ${{ github.event.pull_request.number || github.event.issue.number || (github.event.inputs.number && fromJSON(github.event.inputs.number)) }}
+      repository: ${{ github.repository }}
+      environment: conahcnuj
+    secrets: inherit
