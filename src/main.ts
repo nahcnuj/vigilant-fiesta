@@ -15,7 +15,7 @@ import { blockFillCss } from "./renderer/fill.ts";
 import { audio } from "./audio.ts";
 import { isE2e } from "./e2e.ts";
 import { createAdWaiter, requestAdsIn } from "./ads.ts";
-import { sendPlayEvent, sendXEvent } from "./analytics.ts";
+import { sendPlayEvent, sendXEvent, sendTutorialEvent, sendGameOverEvent } from "./analytics.ts";
 import { initControlsCarousel } from "./controls-carousel.ts";
 import { renderShareButtons } from "./social-share.ts";
 import { type Block, num, op } from "./piece.ts";
@@ -190,7 +190,9 @@ async function startPlay(): Promise<void> {
 
   const handleAction = (action: GameAction) => {
     if (guide && !guide.isComplete && !game?.isGameOver) {
-      guide.advanceOn(action);
+      if (guide.advanceOn(action)) {
+        sendTutorialEvent();
+      }
     }
     controller(action);
     paint();
@@ -264,6 +266,7 @@ function endPlay(): void {
     guideEl.classList.add("hidden");
   }
   stopPlayLoop();
+  sendGameOverEvent();
   sendXEvent(finalScore);
   if (game && renderer) {
     renderer.render(game, []);
