@@ -686,5 +686,5 @@ button:disabled {
   animation: guide-swipe-up 0.9s ease-in-out infinite alternate;
 }
 .guide-gesture-wrap--rotateCW .guide-gesture {
-  animation: guide-swipe-down 0.9s ease-in-out infinite alternate;
+  animation: guide-tap 0.9s ease-in-out infinite;
 }
