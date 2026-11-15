@@ -4,55 +4,26 @@ type GtagWindow = {
   gtag?: (...args: unknown[]) => void;
 };
 
-/** Fire a GA `play` event when a session starts (skipped under ?e2e=1). */
+/** Send a GA event (skipped under ?e2e=1). */
+function sendGaEvent(name: string): void {
+  if (isE2e()) return;
+  const w = globalThis as unknown as GtagWindow;
+  w.gtag?.("event", name);
+}
+
+/** Fire a GA `play` event when a session starts. */
 export function sendPlayEvent(): void {
-  if (isE2e()) return;
-  const w = globalThis as unknown as GtagWindow;
-  w.gtag?.("event", "play");
+  sendGaEvent("play");
 }
 
-/** Fire a GA `tutorial` event when an instructed operation is completed (skipped under ?e2e=1). */
+/** Fire a GA `tutorial` event when an instructed operation is completed. */
 export function sendTutorialEvent(): void {
-  if (isE2e()) return;
-  const w = globalThis as unknown as GtagWindow;
-  w.gtag?.("event", "tutorial");
+  sendGaEvent("tutorial");
 }
 
-/** Alias for {@link sendTutorialEvent} (per-operation completion). */
-export function sendTutorialStepEvent(): void {
-  sendTutorialEvent();
-}
-
-/** Alias for {@link sendTutorialEvent} (per-operation completion). */
-export function sendTutorialCompleteEvent(): void {
-  sendTutorialEvent();
-}
-
-/** Alias for {@link sendTutorialEvent} (per-operation completion). */
-export function sendGuideEvent(): void {
-  sendTutorialEvent();
-}
-
-/** Alias for {@link sendTutorialEvent} (per-operation completion). */
-export function sendGuideStepEvent(): void {
-  sendTutorialEvent();
-}
-
-/** Fire a GA `gameover` event when a game ends (skipped under ?e2e=1). */
+/** Fire a GA `game_over` event when a game ends. */
 export function sendGameOverEvent(): void {
-  if (isE2e()) return;
-  const w = globalThis as unknown as GtagWindow;
-  w.gtag?.("event", "gameover");
-}
-
-/** Alias for {@link sendGameOverEvent}. */
-export function sendGameoverEvent(): void {
-  sendGameOverEvent();
-}
-
-/** Alias for {@link sendGameOverEvent}. */
-export function sendGameOver(): void {
-  sendGameOverEvent();
+  sendGaEvent("game_over");
 }
 
 type TwqWindow = {

@@ -15,7 +15,12 @@ import { blockFillCss } from "./renderer/fill.ts";
 import { audio } from "./audio.ts";
 import { isE2e } from "./e2e.ts";
 import { createAdWaiter, requestAdsIn } from "./ads.ts";
-import { sendPlayEvent, sendXEvent, sendTutorialEvent, sendGameOverEvent } from "./analytics.ts";
+import {
+  sendGameOverEvent,
+  sendPlayEvent,
+  sendTutorialEvent,
+  sendXEvent,
+} from "./analytics.ts";
 import { initControlsCarousel } from "./controls-carousel.ts";
 import { renderShareButtons } from "./social-share.ts";
 import { type Block, num, op } from "./piece.ts";
