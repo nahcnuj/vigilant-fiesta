@@ -18,6 +18,6 @@ Match-three game meets Mathematics!
 
 ```bash
 deno task build
-# リポジトリ直下を配信（index.html / style.css / dist/main.js）
+# public/ を配信（public/index.html / public/style.css / dist/main.js）
 npx serve .
 ```
