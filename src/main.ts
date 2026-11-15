@@ -196,7 +196,7 @@ async function startPlay(): Promise<void> {
   const handleAction = (action: GameAction) => {
     if (guide && !guide.isComplete && !game?.isGameOver) {
       if (guide.advanceOn(action)) {
-        sendTutorialEvent();
+        sendTutorialEvent(action);
       }
     }
     controller(action);

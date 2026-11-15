@@ -16,9 +16,15 @@ export function sendPlayEvent(): void {
   sendGaEvent("play");
 }
 
-/** Fire a GA `tutorial` event when an instructed operation is completed. */
-export function sendTutorialEvent(): void {
-  sendGaEvent("tutorial");
+/** Fire a GA `tutorial` event when an instructed operation is completed.
+ *  Pass the completed operation (or step) to send a distinct event per
+ *  instructed operation (e.g. `tutorial_moveRight`). */
+export function sendTutorialEvent(step?: string | number): void {
+  if (step === undefined) {
+    sendGaEvent("tutorial");
+    return;
+  }
+  sendGaEvent(`tutorial_${step}`);
 }
 
 /** Fire a GA `game_over` event when a game ends. */
