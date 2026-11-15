@@ -238,9 +238,6 @@ async function startPlay(): Promise<void> {
   if (guide) {
     guide.show();
   } else {
-    if (!guideMode) {
-      sendTutorialCompletedEvent();
-    }
     tickerFn = makeTicker();
     renderer.addTicker(tickerFn);
   }
