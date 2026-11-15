@@ -75,6 +75,11 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
           // branch so a slightly diagonal upward flick (common on phones)
           // still drops instead of being misread as a sideways move.
           action = "hardDrop";
+        } else if (dy > 0 && ady >= SWIPE_MIN_PX) {
+          // Downward swipes are rotation. Check this before the horizontal
+          // branch so a slightly diagonal downward flick (common on phones)
+          // still rotates instead of being misread as a sideways move.
+          action = "rotateCW";
         } else if (adx > ady) {
           action = dx < 0 ? "moveLeft" : "moveRight";
         } else {
