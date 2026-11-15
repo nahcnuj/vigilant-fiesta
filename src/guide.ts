@@ -92,7 +92,7 @@ const GUIDE_TOUCH_ICONS: Readonly<Record<GameAction, string>> = {
   rotateCW:
     '<svg class="guide-gesture" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><path d="M36 24a12 12 0 1 1-3.5-8.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M36 8v8h-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
   hardDrop:
-    '<svg class="guide-gesture" viewBox="0 0 24 48" width="24" height="48" aria-hidden="true"><path d="M12 4v32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M6 30l6 8 6-8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+    '<svg class="guide-gesture" viewBox="0 0 24 48" width="24" height="48" aria-hidden="true"><path d="M12 44v-32" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M6 18l6-8 6 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
 };
 
 function guideKeycapHtml(action: GameAction): string {
@@ -100,7 +100,7 @@ function guideKeycapHtml(action: GameAction): string {
 }
 
 function guideGestureHtml(action: GameAction): string {
-  return `<span class="guide-gesture-wrap">${GUIDE_TOUCH_ICONS[action]}</span>`;
+  return `<span class="guide-gesture-wrap guide-gesture-wrap--${action}">${GUIDE_TOUCH_ICONS[action]}</span>`;
 }
 
 interface OperationGuideOptions {
