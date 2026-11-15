@@ -27,6 +27,13 @@ export function sendTutorialEvent(step?: string | number): void {
   sendGaEvent(`tutorial_${step}`);
 }
 
+/** Fire a GA `tutorial_completed` event when the tutorial completes
+ *  (or is skipped because it was already completed). */
+export function sendTutorialCompletedEvent(): void {
+  sendGaEvent("tutorial_completed");
+}
+
+
 /** Fire a GA `game_over` event when a game ends. */
 export function sendGameOverEvent(): void {
   sendGaEvent("game_over");

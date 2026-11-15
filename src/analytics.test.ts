@@ -2,6 +2,7 @@ import { assertEquals } from "https://deno.land/std@0.203.0/testing/asserts.ts";
 import {
   sendGameOverEvent,
   sendPlayEvent,
+  sendTutorialCompletedEvent,
   sendTutorialEvent,
 } from "./analytics.ts";
 
@@ -50,12 +51,16 @@ Deno.test("sendTutorialEvent calls gtag when not e2e", () => {
   assertSingleEvent("tutorial", sendTutorialEvent);
 });
 
+Deno.test("sendTutorialCompletedEvent calls gtag when not e2e", () => {
+  assertSingleEvent("tutorial_completed", sendTutorialCompletedEvent);
+});
+
 Deno.test("sendGameOverEvent calls gtag when not e2e", () => {
   assertSingleEvent("game_over", sendGameOverEvent);
 });
 
 Deno.test("analytics events are skipped under e2e", () => {
-  for (const fn of [sendPlayEvent, sendTutorialEvent, sendGameOverEvent]) {
+  for (const fn of [sendPlayEvent, sendTutorialEvent, sendTutorialCompletedEvent, sendGameOverEvent]) {
     assertEquals(withGtag("?e2e=1", fn).length, 0);
   }
 });
