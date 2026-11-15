@@ -70,14 +70,16 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
         let action: GameAction;
         if (adx < SWIPE_MIN_PX && ady < SWIPE_MIN_PX) {
           action = "rotateCW";
-        } else if (ady >= SWIPE_MIN_PX) {
-          // Any vertical swipe is a hard drop. Downward swipes match the
-          // guide's down arrow; upward swipes stay supported so a slightly
-          // diagonal upward flick (common on phones) still drops instead of
-          // being misread as a sideways move.
+        } else if (dy < 0 && ady >= SWIPE_MIN_PX) {
+          // Upward swipes are hard drop. Check this before the horizontal
+          // branch so a slightly diagonal upward flick (common on phones)
+          // still drops instead of being misread as a sideways move.
           action = "hardDrop";
-        } else {
+        } else if (adx > ady) {
           action = dx < 0 ? "moveLeft" : "moveRight";
+        } else {
+          // Tapping or swiping down rotates the falling pair clockwise.
+          action = "rotateCW";
         }
         e.preventDefault?.();
         handler(action);

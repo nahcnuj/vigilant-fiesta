@@ -56,8 +56,8 @@ Deno.test("every step renders a keycap on keyboard and a gesture on touch", () =
     // The modifier class is what hooks each gesture up to its animation.
     assert(touch.hint.innerHTML.includes(`guide-gesture-wrap--${action}`));
     if (action === "hardDrop") {
-      // Hard drop follows the down swipe shown by the guide.
-      assert(touch.hint.innerHTML.includes("M6 30l6 8 6-8"));
+      // Hard drop matches the upward swipe shown by the guide.
+      assert(touch.hint.innerHTML.includes("M6 18l6-8 6 8"));
     }
     assert(touchGuide.advanceOn(action));
   }

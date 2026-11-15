@@ -78,7 +78,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
   }
 
   async function hardDropTouch(page: any): Promise<void> {
-    await swipeTouch(page, 0, 100);
+    await swipeTouch(page, 0, -100);
   }
 
   async function completeGuideKeyboard(page: any): Promise<void> {
@@ -95,7 +95,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
     await swipeTouch(page, 60, 0);
     await swipeTouch(page, -60, 0);
     await swipeTouch(page, 0, 0);
-    await swipeTouch(page, 0, 100);
+    await swipeTouch(page, 0, -100);
     await page.locator("#guide-overlay").waitFor({ state: "hidden", timeout: 5_000 });
   }
 
@@ -166,7 +166,7 @@ if ((await Deno.permissions.query({ name: "sys" })).state === "granted") {
   });
 
   Deno.test({
-    name: "touch: start → swipe down → result (mobile)",
+    name: "touch: start → swipe up → result (mobile)",
     sanitizeResources: false,
     sanitizeOps: false,
     async fn() {

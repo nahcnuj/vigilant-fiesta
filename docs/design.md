@@ -48,8 +48,8 @@ DOM の `data-screen` / `hidden` で E2E から観測する。
 |------------|----------------|------------|----------------------|
 | `moveLeft` | ← | 左スワイプ | 「左へ」 |
 | `moveRight` | → | 右スワイプ | 「右へ」 |
-| `rotateCW` | ↓ | タップ | 「回転」 |
-| `hardDrop` | ↑ | 下スワイプ（上スワイプも可） | 「一気に落とす」 |
+| `rotateCW` | ↓ | タップ / 下スワイプ | 「回転」 |
+| `hardDrop` | ↑ | 上スワイプ | 「一気に落とす」 |
 
 ```
 InputSource (keyboard / on-screen buttons / …)
