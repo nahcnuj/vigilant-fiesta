@@ -18,6 +18,7 @@ import { createAdWaiter, requestAdsIn } from "./ads.ts";
 import {
   sendGameOverEvent,
   sendPlayEvent,
+  sendTutorialCompletedEvent,
   sendTutorialEvent,
   sendXEvent,
 } from "./analytics.ts";
@@ -197,6 +198,9 @@ async function startPlay(): Promise<void> {
     if (guide && !guide.isComplete && !game?.isGameOver) {
       if (guide.advanceOn(action)) {
         sendTutorialEvent(action);
+        if (guide.isComplete) {
+          sendTutorialCompletedEvent();
+        }
       }
     }
     controller(action);
@@ -234,6 +238,9 @@ async function startPlay(): Promise<void> {
   if (guide) {
     guide.show();
   } else {
+    if (!guideMode) {
+      sendTutorialCompletedEvent();
+    }
     tickerFn = makeTicker();
     renderer.addTicker(tickerFn);
   }
