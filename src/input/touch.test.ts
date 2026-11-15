@@ -77,6 +77,8 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
   swipe(root, 100, 100, 180, 110);
   // adx === ady → else vertical (dy>0 → rotate)
   swipe(root, 100, 100, 150, 150);
+  // upward swipe with horizontal drift → hardDrop (easier to trigger)
+  swipe(root, 100, 100, 180, 40);
 
   assertEquals(seen, [
     "rotateCW",
@@ -87,7 +89,18 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
     "hardDrop",
     "moveRight",
     "rotateCW",
+    "hardDrop",
   ]);
+  d();
+});
+
+Deno.test("touch: upward swipe with horizontal drift is hard drop", () => {
+  const root = boardSurface();
+  const seen: GameAction[] = [];
+  const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+
+  swipe(root, 100, 200, 180, 120); // up-right, horizontal-dominant
+  assertEquals(seen, ["hardDrop"]);
   d();
 });
 
