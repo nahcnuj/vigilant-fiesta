@@ -646,9 +646,44 @@ button:disabled {
 .guide-gesture {
   color: #5ec8ff;
   filter: drop-shadow(0 0 4px rgba(94, 200, 255, 0.5));
+  transform-box: fill-box;
+  transform-origin: center;
+  display: inline-block;
 }
 .guide-gesture-wrap {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: visible;
+  padding: 6px;
+}
+
+/* Animated swipe hints for the operation guide */
+@keyframes guide-swipe-right {
+  0% { transform: translateX(-6px); opacity: 0.4; }
+  100% { transform: translateX(6px); opacity: 1; }
+}
+@keyframes guide-swipe-left {
+  0% { transform: translateX(6px); opacity: 0.4; }
+  100% { transform: translateX(-6px); opacity: 1; }
+}
+@keyframes guide-swipe-down {
+  0% { transform: translateY(-6px); opacity: 0.4; }
+  100% { transform: translateY(6px); opacity: 1; }
+}
+@keyframes guide-tap {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 1; }
+}
+.guide-gesture-wrap--moveRight .guide-gesture {
+  animation: guide-swipe-right 0.9s ease-in-out infinite alternate;
+}
+.guide-gesture-wrap--moveLeft .guide-gesture {
+  animation: guide-swipe-left 0.9s ease-in-out infinite alternate;
+}
+.guide-gesture-wrap--hardDrop .guide-gesture {
+  animation: guide-swipe-down 0.9s ease-in-out infinite alternate;
+}
+.guide-gesture-wrap--rotateCW .guide-gesture {
+  animation: guide-tap 0.9s ease-in-out infinite;
 }
