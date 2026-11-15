@@ -646,6 +646,9 @@ button:disabled {
 .guide-gesture {
   color: #5ec8ff;
   filter: drop-shadow(0 0 4px rgba(94, 200, 255, 0.5));
+  transform-box: fill-box;
+  transform-origin: center;
+  display: inline-block;
 }
 .guide-gesture-wrap {
   display: inline-flex;
@@ -686,5 +689,5 @@ button:disabled {
   animation: guide-swipe-up 0.9s ease-in-out infinite alternate;
 }
 .guide-gesture-wrap--rotateCW .guide-gesture {
-  animation: guide-swipe-down 0.9s ease-in-out infinite alternate;
+  animation: guide-tap 0.9s ease-in-out infinite;
 }
