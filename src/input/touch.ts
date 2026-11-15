@@ -50,6 +50,7 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
         tracking = true;
         startX = e.clientX ?? 0;
         startY = e.clientY ?? 0;
+        e.preventDefault?.();
         try {
           root.setPointerCapture?.(e.pointerId ?? 0);
         } catch {
@@ -69,6 +70,11 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
         let action: GameAction;
         if (adx < SWIPE_MIN_PX && ady < SWIPE_MIN_PX) {
           action = "rotateCW";
+        } else if (dy < 0 && ady >= SWIPE_MIN_PX) {
+          // Upward swipes are hard drop. Check this before the horizontal
+          // branch so a slightly diagonal upward flick (common on phones)
+          // still drops instead of being misread as a sideways move.
+          action = "hardDrop";
         } else if (adx > ady) {
           action = dx < 0 ? "moveLeft" : "moveRight";
         } else {
@@ -83,8 +89,8 @@ export function createTouchPadSource(options: TouchPadOptions = {}): InputSource
       };
 
       if (root.style) root.style.touchAction = "none";
-      root.addEventListener("pointerdown", onDown);
-      root.addEventListener("pointerup", onUp);
+      root.addEventListener("pointerdown", onDown, { passive: false });
+      root.addEventListener("pointerup", onUp, { passive: false });
       root.addEventListener("pointercancel", onCancel);
 
       return () => {

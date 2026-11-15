@@ -79,6 +79,7 @@ button:disabled {
   position: relative;
   /* 盤の下に余白を確保 */
   margin-bottom: 1.25rem;
+  touch-action: none;
 }
 
 #play-layout {

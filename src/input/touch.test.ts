@@ -77,6 +77,8 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
   swipe(root, 100, 100, 180, 110);
   // adx === ady → else vertical (dy>0 → rotate)
   swipe(root, 100, 100, 150, 150);
+  // upward swipe with horizontal drift → hardDrop (easier to trigger)
+  swipe(root, 100, 100, 180, 40);
 
   assertEquals(seen, [
     "rotateCW",
@@ -87,7 +89,49 @@ Deno.test("touch: gesture matrix (tap / axes / thresholds)", () => {
     "hardDrop",
     "moveRight",
     "rotateCW",
+    "hardDrop",
   ]);
+  d();
+});
+
+Deno.test("touch: upward swipe with horizontal drift is hard drop", () => {
+  const root = boardSurface();
+  const seen: GameAction[] = [];
+  const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+
+  swipe(root, 100, 200, 180, 120); // up-right, horizontal-dominant
+  assertEquals(seen, ["hardDrop"]);
+  d();
+});
+
+Deno.test("touch: upward flicks with horizontal dominance are hard drop (easier than before)", () => {
+  // Before the fix these gestures were classified as sideways moves because
+  // adx > ady. They must now all trigger hard drop as long as the upward
+  // component reaches the swipe threshold.
+  const cases: [number, number, number, number][] = [
+    [100, 100, 180, 40], // up-right, horizontal-dominant
+    [100, 200, 260, 120], // up-right, strongly horizontal-dominant
+    [200, 200, 40, 120], // up-left, horizontal-dominant
+    [100, 300, 180, 276], // short upward with horizontal drift
+  ];
+  for (const [x0, y0, x1, y1] of cases) {
+    const root = boardSurface();
+    const seen: GameAction[] = [];
+    const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+    swipe(root, x0, y0, x1, y1);
+    assertEquals(seen, ["hardDrop"], `swipe ${x0},${y0}->${x1},${y1}`);
+    d();
+  }
+});
+
+Deno.test("touch: pure horizontal swipes stay sideways (not over-triggered)", () => {
+  const root = boardSurface();
+  const seen: GameAction[] = [];
+  const d = createTouchPadSource({ root }).attach((a) => seen.push(a));
+
+  swipe(root, 100, 100, 200, 105); // right, tiny upward drift
+  swipe(root, 200, 100, 100, 95); // left, tiny upward drift
+  assertEquals(seen, ["moveRight", "moveLeft"]);
   d();
 });
 
