@@ -466,11 +466,11 @@ button:disabled {
 }
 
 /* Side ads: only on wide screens with leftover space */
-.ad-side { display: none !important; }
+.ad-side { display: none !important; background: #000000; background-color: #000000; }
 @media (min-width: 1100px) {
   body { display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 1rem; }
-  .ad-side { display: flex !important; width: 160px; min-height: 600px; aspect-ratio: auto; margin: 0; flex-shrink: 0; position: sticky; top: 1rem; }
-  .ad-side[hidden] { display: flex !important; }
+  .ad-side { display: flex !important; width: 160px; min-height: 100vh; aspect-ratio: auto; margin: 0; flex-shrink: 0; position: sticky; top: 0; background: #000000; background-color: #000000; }
+  .ad-side[hidden] { display: flex !important; background: #000000; background-color: #000000; }
 }
 
 /* Result layout improvements (Issue #46) */
