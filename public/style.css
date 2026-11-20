@@ -474,7 +474,8 @@ button:disabled {
   body { display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 1rem; }
   .ad-gutter { display: flex !important; width: 160px; min-height: 100vh; background: #000000; background-color: #000000; flex-shrink: 0; position: sticky; top: 1rem; align-items: flex-start; justify-content: center; }
   .ad-gutter[hidden] { display: flex !important; background: #000000; background-color: #000000; }
-  .ad-gutter .ad-side { display: flex !important; width: 100%; min-height: 600px; max-height: 600px; aspect-ratio: auto; margin: 0; background: #000000; background-color: #000000; }
+  .ad-side { display: flex !important; width: 160px; min-height: 600px; aspect-ratio: auto; margin: 0; flex-shrink: 0; }
+  .ad-side[hidden] { display: flex !important; }
 }
 
 /* Result layout improvements (Issue #46) */
