@@ -466,12 +466,15 @@ button:disabled {
 }
 
 /* Side ads: only on wide screens with leftover space */
-/* PC side gutters: pure black (#000000) for the full viewport height. */
-.ad-side { display: none !important; background: #000000; background-color: #000000; }
+/* Outer panel (gutter) is pure black (#000000) for the full viewport height;
+   the ad slot inside keeps its original (<= 600px) height. */
+.ad-gutter { display: none; background: #000000; background-color: #000000; }
+.ad-side { display: none !important; }
 @media (min-width: 1100px) {
   body { display: flex; flex-direction: row; align-items: flex-start; justify-content: center; gap: 1rem; }
-  .ad-side { display: flex !important; width: 160px; min-height: 100vh; aspect-ratio: auto; margin: 0; flex-shrink: 0; position: sticky; top: 0; background: #000000; background-color: #000000; }
-  .ad-side[hidden] { display: flex !important; background: #000000; background-color: #000000; }
+  .ad-gutter { display: flex !important; width: 160px; min-height: 100vh; background: #000000; background-color: #000000; flex-shrink: 0; position: sticky; top: 1rem; align-items: flex-start; justify-content: center; }
+  .ad-gutter[hidden] { display: flex !important; background: #000000; background-color: #000000; }
+  .ad-gutter .ad-side { display: flex !important; width: 100%; min-height: 600px; max-height: 600px; aspect-ratio: auto; margin: 0; background: #000000; background-color: #000000; }
 }
 
 /* Result layout improvements (Issue #46) */
