@@ -1,4 +1,4 @@
-import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
+import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js-legacy@7.4.0/dist/pixi-legacy.mjs";
 import type { Block } from "../piece.ts";
 import { spawnColumn } from "../spawn.ts";
 import { canvasCellSize, paintList } from "./layout.ts";
@@ -24,6 +24,25 @@ export type RenderBoard = {
   isDeadCell(x: number, y: number): boolean;
 };
 
+/**
+ * Create a PIXI application, preferring the auto-detected renderer but falling
+ * back to the canvas renderer when auto-detection throws (e.g. Vivaldi).
+ *
+ * The optional `create` factory makes the fallback behaviour testable without a
+ * real PIXI/browser environment.
+ */
+export function createPixiApplication(
+  options: { [key: string]: unknown },
+  create: (options: { [key: string]: unknown }) => unknown = (options) =>
+    new PIXI.Application(options as never),
+): unknown {
+  try {
+    return create(options);
+  } catch {
+    return create({ ...options, forceCanvas: true });
+  }
+}
+
 export class Renderer {
   private readonly app: InstanceType<typeof PIXI.Application>;
   private cellSize: number;
@@ -34,13 +53,20 @@ export class Renderer {
 
   constructor(private width: number, private height: number) {
     this.cellSize = canvasCellSize(this.width, this.height);
-    this.app = new PIXI.Application({
+    const appOptions = {
       width: this.cellSize * this.width,
       height: this.cellSize * this.height,
       backgroundColor: 0x1a222c,
       antialias: true,
       preserveDrawingBuffer: true,
-    });
+    };
+    // Some browsers (e.g. Vivaldi) fail auto-detection of a renderer even when
+    // WebGL appears available. Try the normal auto-detect first and fall back to
+    // the canvas renderer if it throws, so the game stays playable instead of
+    // raising "Unable to auto-detect a suitable renderer."
+    this.app = createPixiApplication(appOptions) as InstanceType<
+      typeof PIXI.Application
+    >;
     this.guides = new PIXI.Graphics();
     this.graphics = new PIXI.Graphics();
     this.labels = new PIXI.Container();
@@ -145,13 +171,17 @@ export class Renderer {
       this.texts as unknown as PoolNode[],
       rects.length,
       () => {
-        const text = new PIXI.Text("", {
-          fontFamily: "system-ui, sans-serif",
-          fontSize,
-          fontWeight: "700",
-          fill: 0xffffff,
-          align: "center",
-        });
+        const text = new PIXI.Text(
+          "",
+          {
+            fontFamily: "system-ui, sans-serif",
+            fontSize,
+            fontWeight: "700",
+            fill: 0xffffff,
+            align: "center",
+          },
+          undefined as unknown as HTMLCanvasElement,
+        );
         text.anchor.set(0.5);
         this.labels.addChild(text);
         return text as unknown as PoolNode;
@@ -161,7 +191,7 @@ export class Renderer {
       const r = rects[i];
       const lightness = r.dead ? FILL_DEAD_LIGHTNESS : FILL_LIGHTNESS;
       const saturation = r.dead ? FILL_DEAD_SATURATION : FILL_SATURATION;
-      this.graphics.beginFill(hslToRgbInt(r.hue, saturation, lightness));
+      this.graphics.beginFill(hslToRgbInt(r.hue, saturation, lightness), 1);
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
       const text = this.texts[i];
