@@ -43,7 +43,6 @@ export function createPixiApplication(
   }
 }
 
-
 export class Renderer {
   private readonly app: InstanceType<typeof PIXI.Application>;
   private cellSize: number;
