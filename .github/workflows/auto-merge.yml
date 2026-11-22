@@ -1,0 +1,18 @@
+name: Owner-approved auto-merge
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  contents: write
+  pull-requests: write
+  actions: write
+
+jobs:
+  enable:
+    uses: conahcnuj/conahcnuj/.github/workflows/owner-approved-auto-merge.yml@3d7d1578178c60bc2cfd04efb48d15a509795d90
+    with:
+      repository: ${{ github.repository }}
+      pr-number: ${{ github.event.pull_request.number }}
+      head-sha: ${{ github.event.pull_request.head.sha }}
