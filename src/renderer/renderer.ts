@@ -43,8 +43,6 @@ export function createPixiApplication(
   }
 }
 
-export const createPixiApp = createPixiApplication;
-export const createRendererApplication = createPixiApplication;
 
 export class Renderer {
   private readonly app: InstanceType<typeof PIXI.Application>;
