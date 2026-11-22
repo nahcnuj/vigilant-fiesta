@@ -13,3 +13,12 @@ updates:
       github-actions-official:
         patterns:
           - "actions/*"
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    groups:
+      conahcnuj:
+        patterns:
+          - "conahcnuj/conahcnuj/.github/workflows/*"
