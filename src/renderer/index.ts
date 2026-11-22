@@ -1,2 +1,2 @@
 /** Public surface of the renderer package. */
-export { Renderer } from "./renderer.ts";
+export { Renderer, createPixiApplication, createPixiApp, createRendererApplication } from "./renderer.ts";

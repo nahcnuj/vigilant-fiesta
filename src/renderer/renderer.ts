@@ -24,6 +24,28 @@ export type RenderBoard = {
   isDeadCell(x: number, y: number): boolean;
 };
 
+/**
+ * Create a PIXI application, preferring the auto-detected renderer but falling
+ * back to the canvas renderer when auto-detection throws (e.g. Vivaldi).
+ *
+ * The optional `create` factory makes the fallback behaviour testable without a
+ * real PIXI/browser environment.
+ */
+export function createPixiApplication(
+  options: { [key: string]: unknown },
+  create: (options: { [key: string]: unknown }) => unknown = (options) =>
+    new PIXI.Application(options as never),
+): unknown {
+  try {
+    return create(options);
+  } catch {
+    return create({ ...options, forceCanvas: true });
+  }
+}
+
+export const createPixiApp = createPixiApplication;
+export const createRendererApplication = createPixiApplication;
+
 export class Renderer {
   private readonly app: InstanceType<typeof PIXI.Application>;
   private cellSize: number;
@@ -45,13 +67,9 @@ export class Renderer {
     // WebGL appears available. Try the normal auto-detect first and fall back to
     // the canvas renderer if it throws, so the game stays playable instead of
     // raising "Unable to auto-detect a suitable renderer."
-    let app: InstanceType<typeof PIXI.Application>;
-    try {
-      app = new PIXI.Application(appOptions);
-    } catch {
-      app = new PIXI.Application({ ...appOptions, forceCanvas: true });
-    }
-    this.app = app;
+    this.app = createPixiApplication(appOptions) as InstanceType<
+      typeof PIXI.Application
+    >;
     this.guides = new PIXI.Graphics();
     this.graphics = new PIXI.Graphics();
     this.labels = new PIXI.Container();
