@@ -41,29 +41,13 @@ export class Renderer {
       antialias: true,
       preserveDrawingBuffer: true,
     };
-    // Some browsers (e.g. Vivaldi with WebGL unavailable/broken) fail
-    // auto-detection of a renderer. Probe WebGL ourselves and prefer the
-    // canvas renderer when it is unavailable, with a try/catch fallback so
-    // the game remains playable instead of throwing "Unable to auto-detect".
-    let webglSupported = false;
-    try {
-      const probe = document.createElement("canvas");
-      const gl =
-        (probe.getContext("webgl") as WebGLRenderingContext | null) ||
-        (probe.getContext("experimental-webgl") as WebGLRenderingContext | null);
-      webglSupported = !!(
-        gl && gl.getContextAttributes() && gl.getContextAttributes()!.stencil
-      );
-      if (gl) {
-        const lose = gl.getExtension("WEBGL_lose_context");
-        if (lose) lose.loseContext();
-      }
-    } catch {
-      webglSupported = false;
-    }
+    // Some browsers (e.g. Vivaldi) fail auto-detection of a renderer even when
+    // WebGL appears available. Try the normal auto-detect first and fall back to
+    // the canvas renderer if it throws, so the game stays playable instead of
+    // raising "Unable to auto-detect a suitable renderer."
     let app: InstanceType<typeof PIXI.Application>;
     try {
-      app = new PIXI.Application({ ...appOptions, forceCanvas: !webglSupported });
+      app = new PIXI.Application(appOptions);
     } catch {
       app = new PIXI.Application({ ...appOptions, forceCanvas: true });
     }
@@ -172,13 +156,17 @@ export class Renderer {
       this.texts as unknown as PoolNode[],
       rects.length,
       () => {
-        const text = new PIXI.Text("", {
-          fontFamily: "system-ui, sans-serif",
-          fontSize,
-          fontWeight: "700",
-          fill: 0xffffff,
-          align: "center",
-        });
+        const text = new PIXI.Text(
+          "",
+          {
+            fontFamily: "system-ui, sans-serif",
+            fontSize,
+            fontWeight: "700",
+            fill: 0xffffff,
+            align: "center",
+          },
+          undefined as unknown as HTMLCanvasElement,
+        );
         text.anchor.set(0.5);
         this.labels.addChild(text);
         return text as unknown as PoolNode;
@@ -188,7 +176,7 @@ export class Renderer {
       const r = rects[i];
       const lightness = r.dead ? FILL_DEAD_LIGHTNESS : FILL_LIGHTNESS;
       const saturation = r.dead ? FILL_DEAD_SATURATION : FILL_SATURATION;
-      this.graphics.beginFill(hslToRgbInt(r.hue, saturation, lightness));
+      this.graphics.beginFill(hslToRgbInt(r.hue, saturation, lightness), 1);
       this.graphics.drawRoundedRect(r.x, r.y, r.w, r.h, 4);
       this.graphics.endFill();
       const text = this.texts[i];
