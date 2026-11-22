@@ -34,13 +34,40 @@ export class Renderer {
 
   constructor(private width: number, private height: number) {
     this.cellSize = canvasCellSize(this.width, this.height);
-    this.app = new PIXI.Application({
+    const appOptions = {
       width: this.cellSize * this.width,
       height: this.cellSize * this.height,
       backgroundColor: 0x1a222c,
       antialias: true,
       preserveDrawingBuffer: true,
-    });
+    };
+    // Some browsers (e.g. Vivaldi with WebGL unavailable/broken) fail
+    // auto-detection of a renderer. Probe WebGL ourselves and prefer the
+    // canvas renderer when it is unavailable, with a try/catch fallback so
+    // the game remains playable instead of throwing "Unable to auto-detect".
+    let webglSupported = false;
+    try {
+      const probe = document.createElement("canvas");
+      const gl =
+        (probe.getContext("webgl") as WebGLRenderingContext | null) ||
+        (probe.getContext("experimental-webgl") as WebGLRenderingContext | null);
+      webglSupported = !!(
+        gl && gl.getContextAttributes() && gl.getContextAttributes()!.stencil
+      );
+      if (gl) {
+        const lose = gl.getExtension("WEBGL_lose_context");
+        if (lose) lose.loseContext();
+      }
+    } catch {
+      webglSupported = false;
+    }
+    let app: InstanceType<typeof PIXI.Application>;
+    try {
+      app = new PIXI.Application({ ...appOptions, forceCanvas: !webglSupported });
+    } catch {
+      app = new PIXI.Application({ ...appOptions, forceCanvas: true });
+    }
+    this.app = app;
     this.guides = new PIXI.Graphics();
     this.graphics = new PIXI.Graphics();
     this.labels = new PIXI.Container();
