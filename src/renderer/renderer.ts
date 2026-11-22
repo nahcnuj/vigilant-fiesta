@@ -1,4 +1,4 @@
-import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs";
+import * as PIXI from "https://cdn.jsdelivr.net/npm/pixi.js-legacy@7.4.0/dist/pixi-legacy.mjs";
 import type { Block } from "../piece.ts";
 import { spawnColumn } from "../spawn.ts";
 import { canvasCellSize, paintList } from "./layout.ts";

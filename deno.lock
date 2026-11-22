@@ -116,6 +116,7 @@
     }
   },
   "remote": {
+    "https://cdn.jsdelivr.net/npm/pixi.js-legacy@7.4.0/dist/pixi-legacy.mjs": "98605eb9c2aac7d1651109b42e9cdbd44da4306bc93764511f43cfd711ea5cda",
     "https://cdn.jsdelivr.net/npm/pixi.js@7.4.0/dist/pixi.min.mjs": "92ec608179c1e1b3b822a2221cfef1622b8f05769bbc797578e9d7e49cd123cb",
     "https://deno.land/std@0.203.0/assert/_constants.ts": "8a9da298c26750b28b326b297316cdde860bc237533b07e1337c021379e6b2a9",
     "https://deno.land/std@0.203.0/assert/_diff.ts": "1a3c044aedf77647d6cac86b798c6417603361b66b54c53331b312caeb447aea",
